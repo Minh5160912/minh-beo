@@ -1,4 +1,4 @@
-
+---v5
 
 local WindUI = (loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua")))();
 local Window = WindUI:CreateWindow({
@@ -1871,52 +1871,133 @@ local TweenService = game:GetService("TweenService")
 local CurrentTween = nil
 
 function TweenPlayer(pos)
-    -- 1. Chống lỗi nil tọa độ
     if not pos then return end
     
     local player = game.Players.LocalPlayer
     local char = player.Character or player.CharacterAdded:Wait()
     local hrp = char:WaitForChild("HumanoidRootPart")
 
-    -- 2. TÍNH TOÁN KHOẢNG CÁCH
-    local distance = (hrp.Position - pos.Position).Magnitude
-    local speed = _G.Settings.Setting["Player Tween Speed"] or 300
+    -- TÍNH TOÁN KHOẢNG CÁCH & TỐC ĐỘ
+    local distance = (hrp.Position - (typeof(pos) == "CFrame" and pos.p or pos.Position)).Magnitude
+    local speed = _G.Settings.Setting and _G.Settings.Setting["Player Tween Speed"] or 300
+    local targetCFrame = typeof(pos) == "CFrame" and pos or CFrame.new(pos)
 
-    -- 3. LOGIC PHANH & NGẮT SỚM (Sửa lỗi cú pháp tại đây)
-    if _G.Settings.Main and _G.Settings.Main["Auto Farm"] == true then
-        -- Nếu đang farm mà đã tới sát quái thì ngắt Tween để xoay Orbit
-        if distance < 15 then
-            if CurrentTween then 
-                CurrentTween:Cancel() 
-                CurrentTween = nil 
-            end
-            hrp.CFrame = pos
-            return 
-        end
+    -- 1. DỌN DẸP TWEEN CŨ
+    if CurrentTween then 
+        CurrentTween:Cancel() 
+        CurrentTween = nil 
     end
 
-    -- 4. TẠO LỰC NÂNG (BodyVelocity)
-    local bv = hrp:FindFirstChild("FarmVelocity") or Instance.new("BodyVelocity", hrp)
+    -- 2. HÀM KIỂM TRA TẤT CẢ ĐIỀU KIỆN (Tất cả những gì bạn vừa đưa)
+    local function CheckAllSettings()
+        local S = _G.Settings
+        return (
+            -- Main
+            S.Main["Auto Farm"] or S.Main["Auto Fast Farm"] or S.Main["Auto Farm Fruit Mastery"] or 
+            S.Main["Auto Farm Gun Mastery"] or S.Main["Auto Farm Sword Mastery"] or 
+            S.Main["Auto Summon Tyrant Of The Skies"] or S.Main["Auto Kill Tyrant Of The Skies"] or 
+            S.Main["Auto Farm Mon"] or S.Main["Auto Farm Boss"] or S.Main["Auto Farm All Boss"] or
+            
+            -- Farm
+            S.Farm["Auto Elite Hunter"] or S.Farm["Auto Elite Hunter Hop"] or S.Farm["Auto Farm Bone"] or 
+            S.Farm["Auto Random Surprise"] or S.Farm["Auto Pirate Raid"] or S.Farm["Auto Farm Chest Tween"] or 
+            S.Farm["Auto Chest Hop"] or S.Farm["Auto Farm Chest Mirage"] or S.Farm["Auto Farm Katakuri"] or 
+            S.Farm["Auto Spawn Cake Prince"] or S.Farm["Auto Kill Cake Prince"] or 
+            S.Farm["Auto Kill Dough King"] or S.Farm["Auto Farm Material"] or
+            
+            -- Items (Đống này nhiều nhất nè)
+            S.Items["Auto Second Sea"] or S.Items["Auto Third Sea"] or S.Items["Auto Farm Factory"] or 
+            S.Items["Auto Super Human"] or S.Items["Auto Death Step"] or S.Items["Auto Fishman Karate"] or 
+            S.Items["Auto Electric Claw"] or S.Items["Auto Dragon Talon"] or S.Items["Auto God Human"] or 
+            S.Items["Auto Saber"] or S.Items["Auto Buddy Sword"] or S.Items["Auto Soul Guitar"] or 
+            S.Items["Auto Rengoku"] or S.Items["Auto Hallow Scythe"] or S.Items["Auto Warden Sword"] or 
+            S.Items["Auto Cursed Dual Katana"] or S.Items["Auto Yama"] or S.Items["Auto Tushita"] or 
+            S.Items["Auto Canvander"] or S.Items["Auto Dragon Trident"] or S.Items["Auto Pole"] or 
+            S.Items["Auto Shawk Saw"] or S.Items["Auto Greybeard"] or S.Items["Auto Swan Glasses"] or 
+            S.Items["Auto Arena Trainer"] or S.Items["Auto Dark Dagger"] or S.Items["Auto Press Haki Button"] or 
+            S.Items["Auto Rainbow Haki"] or S.Items["Auto Holy Torch"] or S.Items["Auto Bartilo Quest"] or
+            
+            -- DragonDojo & SeaEvent
+            S.DragonDojo["Auto Farm Blaze Ember"] or S.DragonDojo["Auto Collect Blaze Ember"] or
+            S.SeaEvent["Auto Farm Shark"] or S.SeaEvent["Auto Farm Piranha"] or 
+            S.SeaEvent["Auto Farm Fish Crew Member"] or S.SeaEvent["Auto Farm Ghost Ship"] or 
+            S.SeaEvent["Auto Farm Pirate Brigade"] or S.SeaEvent["Auto Farm Pirate Grand Brigade"] or 
+            S.SeaEvent["Auto Farm Terrorshark"] or S.SeaEvent["Auto Farm Seabeasts"] or
+            
+            -- SeaStack
+            S.SeaStack["Tween To Frozen Dimension"] or S.SeaStack["Summon Frozen Dimension"] or 
+            S.SeaStack["Tween To Kitsune Island"] or S.SeaStack["Summon Kitsune Island"] or 
+            S.SeaStack["Auto Collect Azure Ember"] or S.SeaStack["Auto Trade Azure Ember"] or 
+            S.SeaStack["Tween To Mirage Island"] or S.SeaStack["Teleport To Advanced Fruit Dealer"] or 
+            S.SeaStack["Auto Attack Seabeasts"] or S.SeaStack["Summon Prehistoric Island"] or 
+            S.SeaStack["Tween To Prehistoric Island"] or S.SeaStack["Auto Kill Lava Golem"] or
+            
+            -- Race & Combat & Raid & Fruit
+            S.Race["Auto Race V2"] or S.Race["Auto Race V3"] or S.Race["Teleport To Place"] or 
+            S.Race["Tween To Highest Mirage"] or S.Race["Find Blue Gear"] or S.Race["Auto Train"] or 
+            S.Race["Auto Kill Player After Trial"] or S.Race["Auto Trial"] or
+            S.Combat["Auto Kill Player Quest"] or S.Raid["Auto Raid"] or S.Raid["Law Raid"] or
+            S.Fruit["Tween To Fruit"]
+        )
+    end
+
+    -- 3. ĐIỀU KIỆN DỪNG LẬP TỨC
+    if not CheckAllSettings() then
+        if hrp:FindFirstChild("FarmVelocity") then hrp.FarmVelocity:Destroy() end
+        return 
+    end
+
+    -- 4. PHANH GẦN MỤC TIÊU
+    if distance < 15 then
+        hrp.CFrame = targetCFrame
+        return 
+    end
+
+    -- 5. LỰC NÂNG (BODY VELOCITY)
+    local bv = hrp:FindFirstChild("FarmVelocity") or Instance.new("BodyVelocity")
     bv.Name = "FarmVelocity"
     bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
     bv.Velocity = Vector3.zero
+    bv.Parent = hrp
 
-    -- 5. CHẠY TWEEN (Dùng pcall để an toàn tuyệt đối)
+    -- 6. CHẠY TWEEN VÀ NOCLIP
     pcall(function()
-        if CurrentTween then CurrentTween:Cancel() end
-        
         local tweenInfo = TweenInfo.new(distance / speed, Enum.EasingStyle.Linear)
-        CurrentTween = TweenService:Create(hrp, tweenInfo, {CFrame = pos})
+        CurrentTween = game:GetService("TweenService"):Create(hrp, tweenInfo, {CFrame = targetCFrame})
         
+        local isTweening = true
+        
+        task.spawn(function()
+            while isTweening and CheckAllSettings() do
+                pcall(function()
+                    -- Noclip triệt để cho toàn bộ char
+                    for _, v in pairs(char:GetDescendants()) do
+                        if v:IsA("BasePart") then
+                            v.CanCollide = false
+                        end
+                    end
+                end)
+                task.wait()
+            end
+            
+            -- Dọn dẹp sau khi xong hoặc tắt farm
+            pcall(function()
+                if hrp:FindFirstChild("FarmVelocity") then hrp.FarmVelocity:Destroy() end
+                for _, v in pairs(char:GetDescendants()) do
+                    if v:IsA("BasePart") then
+                        v.CanCollide = true
+                    end
+                end
+            end)
+        end)
+
         CurrentTween.Completed:Connect(function()
+            isTweening = false
             CurrentTween = nil
         end)
         
         CurrentTween:Play()
     end)
-
-    -- 6. NOCLIP (Xuyên vật cản)
-    
 end
 
 task.spawn(function()
@@ -1947,122 +2028,164 @@ local players = game:GetService("Players");
 local client = players.LocalPlayer;
 local modules = rs:WaitForChild("Modules");
 local net = modules:WaitForChild("Net");
-local charFolder = workspace:WaitForChild("Characters");
 local enemyFolder = workspace:WaitForChild("Enemies");
 local playerFolder = game:GetService("Players");
+
 local AttackModule = {};
 local RegisterAttack = net:WaitForChild("RE/RegisterAttack");
 local RegisterHit = net:WaitForChild("RE/RegisterHit");
+
+-- [HÀM ĐÁNH CHÍNH]
 function AttackModule:AttackEnemy(EnemyHead, Table)
-	if EnemyHead then
-		RegisterAttack:FireServer(0);
-		RegisterAttack:FireServer(1);
-		RegisterAttack:FireServer(2);
-		RegisterAttack:FireServer(3);
-		RegisterHit:FireServer(EnemyHead, Table or {});
-	end;
+    if EnemyHead then
+        -- Spam M1 siêu tốc 0-3
+        RegisterAttack:FireServer(0);
+        RegisterAttack:FireServer(1);
+        RegisterAttack:FireServer(2);
+        RegisterAttack:FireServer(3);
+        RegisterHit:FireServer(EnemyHead, Table or {});
+    end;
 end;
+
+-- [QUÉT MỤC TIÊU & XỬ LÝ TRÁI ÁC QUỶ]
 function AttackModule:AttackNearest()
-	local mon = {
-		nil,
-		{}
-	};
-	for _, Enemy in enemyFolder:GetChildren() do
-		if not mon[1] and Enemy:FindFirstChild("HumanoidRootPart", true) and client:DistanceFromCharacter(Enemy.HumanoidRootPart.Position) < 60 then
-			mon[1] = Enemy:FindFirstChild("HumanoidRootPart");
-		elseif Enemy:FindFirstChild("HumanoidRootPart", true) and client:DistanceFromCharacter(Enemy.HumanoidRootPart.Position) < 60 then
-			table.insert(mon[2], {
-				[1] = Enemy,
-				[2] = Enemy:FindFirstChild("HumanoidRootPart")
-			});
-		end;
-	end;
-	self:AttackEnemy(unpack(mon));
-	local player = {
-		nil,
-		{}
-	};
-	for _, Player in playerFolder:GetChildren() do
-		if not player[1] and Player:FindFirstChild("HumanoidRootPart", true) and client:DistanceFromCharacter(Player.Character.HumanoidRootPart.Position) < 60 then
-			player[1] = Player.Character:FindFirstChild("HumanoidRootPart");
-		elseif Player.Character:FindFirstChild("HumanoidRootPart", true) and client:DistanceFromCharacter(Player.Character.HumanoidRootPart.Position) < 60 then
-			table.insert(player[2], {
-				[1] = Player,
-				[2] = Player.Character:FindFirstChild("HumanoidRootPart")
-			});
-		end;
-	end;
-	self:AttackEnemy(unpack(player));
-end;
-function AttackModule:BladeHits()
-	self:AttackNearest();
-end;
--- Tìm hàm "function Attack()" trong Minh BELL Hub và thay bằng nội dung này:
--- Tìm và thay thế toàn bộ hàm function Attack() trong New Tab 1.lua bằng đoạn này:
--- Thay thế toàn bộ hàm function Attack() trong New Tab 1.lua bằng đoạn này:
--- Tìm và thay thế hoàn toàn function Attack() trong New Tab 1.lua bằng đoạn này:
-function Attack()
-    -- KIỂM TRA TẤT CẢ CÁC NÚT FARM TRONG SETTINGS CỦA BẠN
-    local Main = _G.Settings.Main
-    local Farm = _G.Settings.Farm
-    
-    local isFarming = 
-        Main["Auto Farm"] or 
-        Main["Auto Fast Farm"] or 
-        Main["Auto Farm Mon"] or 
-        Main["Auto Farm Boss"] or 
-        Main["Auto Farm All Boss"] or
-        Main["Auto Farm Fruit Mastery"] or
-        Main["Auto Farm Gun Mastery"] or
-        Main["Auto Farm Sword Mastery"] or
-        Farm["Auto Farm Bone"] or 
-        Farm["Auto Elite Hunter"] or
-        Farm["Auto Farm Material"] or
-        Farm["Auto Pirate Raid"] or
-        Farm["Auto Kill Cake Prince"] or
-        Farm["Auto Kill Dough King"] or
-		Raid["Auto Raid"] or -- THÊM DÒNG NÀY
-        Raid["Law Raid"]
+    local char = client.Character
+    if not char then return end
+    local tool = char:FindFirstChildOfClass("Tool")
+    if not tool then return end
 
-    -- CHỈ THỰC HIỆN LỆNH ĐÁNH KHI MỘT TRONG CÁC BIẾN TRÊN LÀ TRUE
-    if isFarming then
-        pcall(function()
-            local Net = game:GetService("ReplicatedStorage").Modules.Net
-            local RegAttack = Net:FindFirstChild("RE/RegisterAttack")
-            local RegHit = Net:FindFirstChild("RE/RegisterHit")
-            local Character = game.Players.LocalPlayer.Character
-            local Root = Character and Character:FindFirstChild("HumanoidRootPart")
+    local mon = {nil, {}};
+    local pos = char:GetPivot().Position
 
-            -- Kiểm tra vũ khí trên tay
-            local Weapon = Character:FindFirstChildOfClass("Tool")
-            if not Weapon then return end 
-
-            -- Gửi lệnh đánh ngầm (Silent M1)
-            if RegAttack then
-                RegAttack:FireServer(0)
-            end
-
-            -- Gây sát thương diện rộng (Matsune Logic)
-            if Root and RegHit then
-                local Enemies = game:GetService("Workspace").Enemies:GetChildren()
-                for i = 1, #Enemies do
-                    local v = Enemies[i]
-                    if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-                        local dist = (v.HumanoidRootPart.Position - Root.Position).Magnitude
-                        -- Tầm đánh chuẩn 65 studs
-                        if dist < 65 then
-                            RegHit:FireServer(v.HumanoidRootPart, {[1] = v.HumanoidRootPart})
-                        end
-                    end
+    -- 1. Tìm mục tiêu trong tầm 60 studs
+    for _, Enemy in pairs(enemyFolder:GetChildren()) do
+        if Enemy:FindFirstChild("HumanoidRootPart") and Enemy:FindFirstChild("Humanoid") and Enemy.Humanoid.Health > 0 then
+            local dist = (Enemy.HumanoidRootPart.Position - pos).Magnitude
+            if dist < 60 then
+                if not mon[1] then
+                    mon[1] = Enemy.HumanoidRootPart
+                else
+                    table.insert(mon[2], {[1] = Enemy, [2] = Enemy.HumanoidRootPart});
                 end
             end
-        end)
+        end;
+    end;
+
+    -- 2. XỬ LÝ ĐÁNH M1 (M1 no unban logic)
+    if mon[1] then
+        -- Nếu là Trái ác quỷ có LeftClickRemote (như Magma, Dough...)
+        if tool.ToolTip == "Blox Fruit" and tool:FindFirstChild("LeftClickRemote") then
+            local dir = (mon[1].Position - pos).Unit
+            pcall(function()
+                -- Bắn chiêu chuột trái của trái ác quỷ
+                tool.LeftClickRemote:FireServer(dir, 1)
+            end)
+        end
+
+        -- Vẫn thực hiện RegisterHit diện rộng cho Melee/Sword hoặc đòn đánh phụ
+        self:AttackEnemy(unpack(mon))
     end
 end;
 
-function NormalAttack()
-	AttackModule:BladeHits();
+function AttackModule:BladeHits()
+    self:AttackNearest();
 end;
+
+function NormalAttack()
+    AttackModule:BladeHits();
+end;
+
+-- [VÒNG LẶP KÍCH HOẠT]
+task.spawn(function()
+    while task.wait() do
+        if _G.FastAttack or (_G.Settings and _G.Settings.Main and _G.Settings.Main["Auto Farm"]) then
+            pcall(function()
+                local tool = client.Character:FindFirstChildOfClass("Tool")
+                -- Chỉ đánh nếu cầm đúng loại vũ khí
+                if tool and (tool.ToolTip == "Melee" or tool.ToolTip == "Sword" or tool.ToolTip == "Blox Fruit") then
+                    NormalAttack()
+                end
+            end)
+        end
+    end
+end)
+
+-------------------attack() module
+-- Khởi tạo biến môi trường rz_FastAttack từ M1 no unban (Giữ nguyên gốc)
+if not getgenv().rz_FastAttack then
+    getgenv().rz_FastAttack = {
+        Distance = 100,
+        Settings = {ClickDelay = 0}
+    }
+end
+
+local function Attack()
+    -- [GỐC] Kiểm tra điều kiện bật từ Menu (Giữ nguyên điều kiện của Minh)
+    if not (_G.Settings.Main["Auto Farm"] or _G.Settings.Raid["Auto Raid"] or _G.FastAttack) then return end
+    
+    local character = game.Players.LocalPlayer.Character
+    if not character or not character:FindFirstChild("Humanoid") or character.Humanoid.Health <= 0 then return end
+
+    local tool = character:FindFirstChildOfClass("Tool")
+    if not tool then return end
+
+    local tooltip = tool.ToolTip
+    -- [GỐC] Chỉ đánh nếu là Melee, Kiếm hoặc Trái ác quỷ
+    if tooltip ~= "Melee" and tooltip ~= "Sword" and tooltip ~= "Blox Fruit" then return end
+
+    pcall(function()
+        -- [M1 no unban] Sử dụng Net từ Modules
+        local Net = game:GetService("ReplicatedStorage").Modules.Net
+        local RegAttack = Net:WaitForChild("RE/RegisterAttack")
+        local RegHit = Net:WaitForChild("RE/RegisterHit")
+        local pos = character:GetPivot().Position
+
+        -- [GỐC] Lệnh đánh chém (M1)
+        RegAttack:FireServer(0) 
+
+        -- Xử lý gây sát thương diện rộng (Hitbox)
+        local Enemies = game:GetService("Workspace").Enemies:GetChildren()
+        local allHits = {}
+        local mainTarget = nil
+
+        for _, v in pairs(Enemies) do
+            -- [M1 no unban] Kiểm tra Head/HRP và IsAlive
+            if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                local dist = (v.HumanoidRootPart.Position - pos).Magnitude
+                if dist < 110 then -- Tầm đánh cân bằng giữa 100 và 120
+                    if not mainTarget then
+                        mainTarget = v.HumanoidRootPart
+                    else
+                        table.insert(allHits, {v, v.HumanoidRootPart})
+                    end
+                end
+            end
+        end
+
+        -- [M1 no unban] Nếu là Trái ác quỷ có LeftClickRemote thì bắn Direction
+        if mainTarget and tool:FindFirstChild("LeftClickRemote") then
+            local dir = (mainTarget.Position - pos).Unit
+            tool.LeftClickRemote:FireServer(dir, 1)
+        end
+
+        -- [GỐC] Gửi gói tin RegisterHit
+        if mainTarget then
+            RegHit:FireServer(mainTarget, allHits)
+        end
+    end)
+end
+
+-- VÒNG LẶP KÍCH HOẠT (Thừa hưởng từ logic task.spawn của M1 no unban)
+task.spawn(function()
+    while task.wait() do
+        -- Chỉ chạy khi _G.FastAttack hoặc Auto Farm được bật
+        if _G.FastAttack or (_G.Settings and (_G.Settings.Main["Auto Farm"] or _G.Settings.Raid["Auto Raid"])) then
+            Attack()
+        end
+    end
+end)
+
+
 spawn(function()
 	(game:GetService("RunService")).RenderStepped:Connect(function()
 		pcall(function()
@@ -2293,12 +2416,12 @@ spawn(function()
 		end;
 	end);
 end);
-
-FruitSection = Tabs.FruitTab:Section({
+-- =========================================================
+local Fruit = Tabs.FruitTab:Section({
 	Title = "Fruit",
 	TextXAlignment = "Left"
 });
-AutoRandomFruitToggle = Tabs.FruitTab:Toggle({
+Fruit:Toggle({
 	Title = "Auto Random Fruit",
 	Value = _G.Settings.Fruit["Auto Buy Random Fruit"],
 	Callback = function(state)
@@ -2374,7 +2497,7 @@ local SelectRarityFruits = {
 	"Legendary - Mythical",
 	"Mythical"
 };
-StoreRarityFruitDropdown = Tabs.FruitTab:Dropdown({
+Fruit:Dropdown({
 	Title = "Store Rarity Fruit",
 	Values = SelectRarityFruits,
 	Value = _G.Settings.Fruit["Store Rarity Fruit"],
@@ -2418,7 +2541,7 @@ function CheckFruits()
 		end;
 	end;
 end;
-AutoStoreFruitToggle = Tabs.FruitTab:Toggle({
+Fruit:Toggle({
 	Title = "Auto Store Fruit",
 	Value = _G.Settings.Fruit["Auto Store Fruit"],
 	Callback = function(state)
@@ -2449,7 +2572,7 @@ spawn(function()
 		end);
 	end;
 end);
-FruitNotification = Tabs.FruitTab:Toggle({
+Fruit:Toggle({
 	Title = "Fruit Notification",
 	Value = _G.Settings.Fruit["Fruit Notification"],
 	Callback = function(state)
@@ -2473,7 +2596,7 @@ spawn(function()
 		end;
 	end;
 end);
-TeleportToFruitToggle = Tabs.FruitTab:Toggle({
+Fruit:Toggle({
 	Title = "Teleport To Fruit",
 	Value = _G.Settings.Fruit["Teleport To Fruit"],
 	Callback = function(state)
@@ -2492,7 +2615,7 @@ spawn(function()
 		end;
 	end;
 end);
-TweenToFruitToggle = Tabs.FruitTab:Toggle({
+Fruit:Toggle({
 	Title = "Tween To Fruit",
 	Value = _G.Settings.Fruit["Tween To Fruit"],
 	Callback = function(state)
@@ -2511,7 +2634,7 @@ spawn(function()
 		end;
 	end;
 end);
-GrabFruitButton = Tabs.FruitTab:Button({
+Fruit:Button({
 	Title = "Grab Fruit",
 	Callback = function()
 		for i, v in pairs(game.Workspace:GetChildren()) do
@@ -2521,7 +2644,7 @@ GrabFruitButton = Tabs.FruitTab:Button({
 		end;
 	end
 });
-VisualSection = Tabs.FruitTab:Section({
+local VisualSection = Tabs.FruitTab:Section({
 	Title = "Visual",
 	TextXAlignment = "Left"
 });
@@ -2540,12 +2663,92 @@ function rainFruit()
 		end);
 	end;
 end;
-RainFruitButton = Tabs.FruitTab:Button({
+VisualSection:Button({
 	Title = "Rain Fruit",
 	Callback = function()
 		rainFruit();
 	end
 })
+
+-- Tạo Section cho Stock (Nhớ dùng đúng biến Tabs của ông)
+local function FormatNumber(value)
+    local str = tostring(value)
+    repeat
+        local count
+        str, count = str:gsub("^(-?%d+)(%d%d%d)", "%1,%2")
+    until count == 0
+    return str
+end
+
+local function GetFruitStock()
+    local CommF = game:GetService("ReplicatedStorage").Remotes.CommF_
+    local res = "✨ [ CỬA HÀNG NÂNG CAO ] ✨\n"
+    
+    local s1, b1 = pcall(function() return CommF:InvokeServer("GetFruits", true) end)
+    local hasA = false
+    if s1 and b1 then
+        for _, v in pairs(b1) do
+            if v.OnSale then
+                res = res .. "• " .. v.Name .. " ( $" .. FormatNumber(v.Price) .. " )\n"
+                hasA = true
+            end
+        end
+    end
+    if not hasA then res = res .. "❌ Hiện đang trống\n" end
+
+    res = res .. "\n🛒 [ CỬA HÀNG THÔNG THƯỜNG ] 🛒\n"
+    
+    local s2, b2 = pcall(function() return CommF:InvokeServer("GetFruits") end)
+    local hasN = false
+    if s2 and b2 then
+        for _, v in pairs(b2) do
+            if v.OnSale then
+                res = res .. "• " .. v.Name .. " ( $" .. FormatNumber(v.Price) .. " )\n"
+                hasN = true
+            end
+        end
+    end
+    if not hasN then res = res .. "❌ Hiện đang trống\n" end
+    return res
+end
+local FruitStockSection = Tabs.FruitTab:Section({
+    Title = "Fruit Shop Stock",
+    TextXAlignment = "Left"
+})
+
+-- Tạo Paragraph hiển thị danh sách
+local StockPara = FruitStockSection:Paragraph({
+    Title = "Tình Trạng Cửa Hàng",
+    Desc = "Đang kiểm tra dữ liệu...",
+    Image = "rbxassetid://10734950309",
+    ImageSize = 20
+})
+
+-- Nút cập nhật
+FruitStockSection:Button({
+    Title = "Làm mới danh sách",
+    Desc = "Cập nhật kho hàng ngay lập tức",
+    Callback = function()
+        -- Cập nhật mô tả của Paragraph
+        StockPara:SetDesc(GetFruitStock()) 
+    end
+})
+task.spawn(function()
+    while true do
+        task.wait(60) -- Cập nhật mỗi 60 giây
+        pcall(function()
+            if StockPara then
+                StockPara:SetDesc(GetFruitStock())
+            end
+        end)
+    end
+end)
+
+-- Chạy lần đầu khi vừa mở Hub
+task.delay(3, function()
+    pcall(function() StockPara:SetDesc(GetFruitStock()) end)
+end)
+
 
 MainSection = Tabs.MainTab:Section({
 	Title = "Main",
@@ -7509,39 +7712,44 @@ AutoFarmSeabeastsToggle = Tabs.SeaEventTab:Toggle({
 });
 SeaStackSection = Tabs.SeaStackTab:Section({
 	Title = "Sea Stack",
-	TextXAlignment = "Left"
+	TextXAlignment = "Left",
+	TextSize = 26, 
+});
+local PrehistoricSeaStack = Tabs.SeaStackTab:Section({
+	Title = "Prehistoric Island",
+	TextXAlignment = "Left", 
 });
 spawn(function()
 	pcall(function()
 		while wait(0.2) do
 			if game.Workspace._WorldOrigin.Locations:FindFirstChild("Mirage Island") then
-				MirageStatusSeaStackParagraph:SetDesc("ðŸï¸ Mirage Island Spawning");
+				MirageSeaStack:SetDesc("Mirage Island Spawning");
 			else
-				MirageStatusSeaStackParagraph:SetDesc("ðŸï¸ Mirage Island Not Spawn");
+				MirageSeaStack:SetDesc("Mirage Island Not Spawn");
 			end;
 			if game.Workspace._WorldOrigin.Locations:FindFirstChild("Kitsune Island") then
-				KitsuneStatusSeaStackParagraph:SetDesc("â›©ï¸ Kitsune Island Spawning");
+				KitsuneSeaStack:SetDesc("Kitsune Island Spawning");
 			else
-				KitsuneStatusSeaStackParagraph:SetDesc("â›©ï¸ Kitsune Island Not Spawn");
+				KitsuneSeaStack:SetDesc("Kitsune Island Not Spawn");
 			end;
 			if game.Workspace._WorldOrigin.Locations:FindFirstChild("Frozen Dimension") then
-				FrozenStatusSeaStackParagraph:SetDesc("â„ï¸ Frozen Dimension Spawning");
+				FrozenDimension:SetDesc("Frozen Dimension Spawning");
 			else
-				FrozenStatusSeaStackParagraph:SetDesc("â„ï¸ Frozen Dimension Not Spawn");
+				FrozenDimension:SetDesc("Frozen Dimension Not Spawn");
 			end;
 			if game.Workspace._WorldOrigin.Locations:FindFirstChild("Prehistoric Island") then
-				PrehistoricStatusSeaStackParagraph:SetDesc("ðŸ¦´ Prehistoric Island Spawning");
+				PrehistoricSeaStack:SetDesc("Prehistoric Island Spawning");
 			else
-				PrehistoricStatusSeaStackParagraph:SetDesc("ðŸ¦´ Prehistoric Island Not Spawn");
+				PrehistoricSeaStack:SetDesc("Prehistoric Island Not Spawn");
 			end;
 		end;
 	end);
 end);
-PrehistoricStatusSeaStackParagraph = Tabs.SeaStackTab:Paragraph({
+PrehistoricSeaStack:Paragraph({
 	Title = "Prehistoric Status",
 	Desc = "N/A"
 });
-AutoSummonPrehistoricIslandToggle = Tabs.SeaStackTab:Toggle({
+PrehistoricSeaStack:Toggle({
 	Title = "Summon Prehistoric Island",
 	Desc = "Need Volcanic Magnet",
 	Value = _G.Settings.SeaStack["Summon Prehistoric Island"],
@@ -7589,7 +7797,7 @@ spawn(function()
 		end);
 	end;
 end);
-TweenToPrehistoricIslandToggle = Tabs.SeaStackTab:Toggle({
+PrehistoricSeaStack:Toggle({
 	Title = "Tween To Prehistoric Island",
 	Desc = "Need Spawn",
 	Value = _G.Settings.SeaStack["Tween To Prehistoric Island"],
@@ -7610,7 +7818,7 @@ spawn(function()
 		end;
 	end;
 end);
-AutoKillLavaGolemToggle = Tabs.SeaStackTab:Toggle({
+PrehistoricSeaStack:Toggle({
 	Title = "Auto Kill Lava Golem",
 	Value = _G.Settings.SeaStack["Auto Kill Lava Golem"],
 	Callback = function(state)
@@ -7646,11 +7854,15 @@ spawn(function()
 		end;
 	end;
 end);
-FrozenStatusSeaStackParagraph = Tabs.SeaStackTab:Paragraph({
+local FrozenDimension = Tabs.SeaStackTab:Section({
+	Title = "Frozen Dimension",
+	TextXAlignment = "Left", 
+});
+FrozenDimension:Paragraph({
 	Title = "Frozen Status",
 	Desc = "N/A"
 });
-AutoSummonFrozenDimensionToggle = Tabs.SeaStackTab:Toggle({
+FrozenDimension:Toggle({
 	Title = "Summon Frozen Dimension",
 	Value = _G.Settings.SeaStack["Summon Frozen Dimension"],
 	Callback = function(state)
@@ -7697,7 +7909,7 @@ spawn(function()
 		end);
 	end;
 end);
-TweenToFrozenDimensionToggle = Tabs.SeaStackTab:Toggle({
+FrozenDimension:Toggle({
 	Title = "Tween To Frozen Dimension",
 	Value = _G.Settings.SeaStack["Tween To Frozen Dimension"],
 	Callback = function(state)
@@ -7718,22 +7930,26 @@ spawn(function()
 		end;
 	end;
 end);
-BribeLeviathanStatusParagraph = Tabs.SeaStackTab:Paragraph({
+FrozenDimension:Paragraph({
 	Title = "Leviathan Status",
 	Desc = "0"
 });
-BribeLeviathanButton = Tabs.SeaStackTab:Button({
+FrozenDimension:Button({
 	Title = "Bribe Leviathan",
 	Callback = function()
 		local Status = (game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("InfoLeviathan", "2");
 		BribeLeviathanStatusParagraph:SetDesc(Status);
 	end
 });
-KitsuneStatusSeaStackParagraph = Tabs.SeaStackTab:Paragraph({
+local KitsuneSeaStack = Tabs.SeaStackTab:Section({
+	Title = "Kitsune Island",
+	TextXAlignment = "Left", 
+});
+KitsuneSeaStack:Paragraph({
 	Title = "Kitsune Status",
 	Desc = "N/A"
 });
-AutoSummonKitsuneIslandToggle = Tabs.SeaStackTab:Toggle({
+KitsuneSeaStack:Toggle({
 	Title = "Summon Kitsune Island",
 	Value = _G.Settings.SeaStack["Summon Kitsune Island"],
 	Callback = function(state)
@@ -7742,7 +7958,7 @@ AutoSummonKitsuneIslandToggle = Tabs.SeaStackTab:Toggle({
 		(getgenv()).SaveSetting();
 	end
 });
-TweenToKitsuneIslandToggle = Tabs.SeaStackTab:Toggle({
+KitsuneSeaStack:Toggle({
 	Title = "Tween To Kitsune Island",
 	Value = _G.Settings.SeaStack["Tween To Kitsune Island"],
 	Callback = function(state)
@@ -7798,7 +8014,7 @@ spawn(function()
 		end);
 	end;
 end);
-AutoCollectAzureEmberToggle = Tabs.SeaStackTab:Toggle({
+KitsuneSeaStack:Toggle({
 	Title = "Auto Collect Azure Ember",
 	Value = _G.Settings.SeaStack["Auto Collect Azure Ember"],
 	Callback = function(state)
@@ -7817,7 +8033,7 @@ spawn(function()
 		end;
 	end;
 end);
-SetAzureEmberSlider = Tabs.SeaStackTab:Slider({
+KitsuneSeaStack:Slider({
 	Title = "Set Azure Ember",
 	Step = 1,
 	Value = {
@@ -7830,7 +8046,7 @@ SetAzureEmberSlider = Tabs.SeaStackTab:Slider({
 		(getgenv()).SaveSetting();
 	end
 });
-AutoTradeAzureEmberToggle = Tabs.SeaStackTab:Toggle({
+KitsuneSeaStack:Toggle({
 	Title = "Auto Trade Azure Ember",
 	Value = _G.Settings.SeaStack["Auto Trade Azure Ember"],
 	Callback = function(state)
@@ -7859,11 +8075,15 @@ spawn(function()
 		end;
 	end;
 end);
-MirageStatusSeaStackParagraph = Tabs.SeaStackTab:Paragraph({
+local MirageSeaStack = Tabs.SeaStackTab:Section({
+	Title = "Mirage Island",
+	TextXAlignment = "Left", 
+});
+MirageSeaStack:Paragraph({
 	Title = "Mirage Status",
 	Desc = "N/A"
 });
-TweenToMirageIslandToggle = Tabs.SeaStackTab:Toggle({
+MirageSeaStack:Toggle({
 	Title = "Tween To Mirage Island",
 	Value = _G.Settings.SeaStack["Tween To Mirage Island"],
 	Callback = function(state)
@@ -7903,11 +8123,12 @@ spawn(function()
 		end;
 	end);
 end);
-SeaBeastSeaStackSection = Tabs.SeaStackTab:Section({
+
+local SeaBeastSeaStack = Tabs.SeaStackTab:Section({
 	Title = "Sea Beasts",
 	TextXAlignment = "Left"
 });
-AutoAttackSeaBeastsToggle = Tabs.SeaStackTab:Toggle({
+SeaBeastSeaStack:Toggle({
 	Title = "Auto Attack Seabeasts",
 	Value = _G.Settings.SeaStack["Auto Attack Seabeasts"],
 	Callback = function(state)
@@ -7952,6 +8173,48 @@ spawn(function()
 		end;
 	end);
 end);
+-- Tạo Section trong Sea Stack (Nhớ dùng đúng biến Tabs.)
+-- Tạo Section trong Sea Stack
+local FishingSection = Tabs.SeaStackTab:Section({
+    Title = "Auto Fishing | Tự Động Câu Cá",
+    TextXAlignment = "Left"
+})
+
+-- Nút Bật/Tắt
+FishingSection:Toggle({
+    Title = "Bật Auto Fishing",
+    Desc = "Tự động thả cần và bắt cá",
+    Default = false,
+    Callback = function(state)
+        _G.AutoFishing = state
+    end
+})
+
+-- Chọn Mồi (Đã đổi sang Values)
+FishingSection:Dropdown({
+    Title = "Chọn Mồi Câu",
+    Desc = "Chọn mồi trước khi câu",
+    Values = {"Basic Bait", "Kelp Bait", "Good Bait", "Abyssal Bait", "Frozen Bait", "Epic Bait", "Carnivore Bait"},
+    Default = "Basic Bait",
+    Callback = function(value)
+        _G.SelectedBait = value
+        local fishStor = game:GetService("ReplicatedStorage"):FindFirstChild("FishReplicated")
+        if fishStor then
+            fishStor.FishingRequest:InvokeServer("SelectBait", value)
+        end
+    end
+})
+
+-- Chọn Cần (Đã đổi sang Values)
+FishingSection:Dropdown({
+    Title = "Chọn Cần Câu",
+    Desc = "Chọn đúng cần trong túi đồ",
+    Values = {"Fishing Rod", "Gold Rod", "Shark Rod", "Shell Rod", "Treasure Rod"},
+    Default = "Fishing Rod",
+    Callback = function(value)
+        _G.SelectedRod = value
+    end
+})
 
 DragonDojoSection = Tabs.DragonDojoTab:Section({
 	Title = "Dragon Dojo",
@@ -8575,80 +8838,278 @@ spawn(function()
 	end;
 end);
 
-CombatTabSection = Tabs.CombatTab:Section({
-	Title = "Combat",
-	TextXAlignment = "Left"
-});
-PlayerInServerTotalParagraph = Tabs.CombatTab:Paragraph({
-	Title = "Players In Server",
-	Desc = "0"
-});
-spawn(function()
-	while wait(0.2) do
-		pcall(function()
-			for i, v in pairs((game:GetService("Players")):GetPlayers()) do
-				if i == 12 then
-					PlayerInServerTotalParagraph:SetDesc(i .. " / " .. "12" .. "(Max)");
-				elseif i == 1 then
-					PlayerInServerTotalParagraph:SetDesc(i .. " / " .. "12");
-				else
-					PlayerInServerTotalParagraph:SetDesc(i .. " / " .. "12");
-				end;
-			end;
-		end);
-	end;
-end);
-local PlayerList = {};
-for i, v in pairs((game:GetService("Players")):GetChildren()) do
-	table.insert(PlayerList, v.Name);
-end;
-SelectedPlayerDropdown = Tabs.CombatTab:Dropdown({
-	Title = "Choose Player",
-	Values = PlayerList,
-	Value = tostring(PlayerList[1]),
-	Callback = function(option)
-		_G.SelectedPlayer = option;
-	end
-});
-RefreshPlayerButton = Tabs.CombatTab:Button({
-	Title = "Refresh Player",
-	Callback = function()
-		PlayerList = {};
-		for i, v in pairs((game:GetService("Players")):GetChildren()) do
-			table.insert(PlayerList, v.Name);
-		end;
-		SelectedPlayerDropdown:Refresh(PlayerList);
-	end
-});
-SpectatePlayerToggle = Tabs.CombatTab:Toggle({
-	Title = "Spectate Player",
-	Value = false,
-	Callback = function(state)
-		SpectatePlys = state;
-		repeat
-			wait(0.1);
-			(game:GetService("Workspace")).Camera.CameraSubject = ((game:GetService("Players")):FindFirstChild(_G.SelectedPlayer)).Character.Humanoid;
-		until SpectatePlys == false or (not (game:GetService("Players")):FindFirstChild(_G.SelectedPlayer));
-		(game:GetService("Workspace")).Camera.CameraSubject = (game:GetService("Players")).LocalPlayer.Character.Humanoid;
-	end
-});
-TeleportToPlayerToggle = Tabs.CombatTab:Toggle({
-	Title = "Teleport To Player",
-	Value = false,
-	Callback = function(state)
-		_G.TeleportToPlayer = value;
-		pcall(function()
-			if _G.TeleportToPlayer then
-				repeat
-					TweenPlayer((game:GetService("Players"))[_G.SelectedPlayer].Character.HumanoidRootPart.CFrame);
-					wait();
-				until _G.TeleportToPlayer == false or (not (game:GetService("Players")):FindFirstChild(_G.SelectedPlayer));
-			end;
-			StopTween(_G.TeleportToPlayer);
-		end);
-	end
-});
+-- [[ COMBAT SECTION - FIX REFRESH & CHUẨN WINDUI ]]
 
+CombatTabSection = Tabs.CombatTab:Section({
+    Title = "Combat",
+    TextXAlignment = "Left"
+})
+
+PlayerInServerTotalParagraph = Tabs.CombatTab:Paragraph({
+    Title = "Players In Server",
+    Desc = "0"
+})
+
+-- Loop cập nhật số lượng người chơi
+spawn(function()
+    while wait(0.5) do
+        pcall(function()
+            local players = game:GetService("Players"):GetPlayers()
+            local count = #players
+            if count >= 12 then
+                PlayerInServerTotalParagraph:SetDesc(count .. " / 12 (Max)")
+            else
+                PlayerInServerTotalParagraph:SetDesc(count .. " / 12")
+            end
+        end)
+    end
+end)
+
+local PlayerList = {}
+local function GetNewPlayerList()
+    local tbl = {}
+    for _, v in pairs(game:GetService("Players"):GetPlayers()) do
+        table.insert(tbl, v.Name)
+    end
+    return tbl
+end
+
+PlayerList = GetNewPlayerList()
+
+SelectedPlayerDropdown = Tabs.CombatTab:Dropdown({
+    Title = "Choose Player",
+    Values = PlayerList,
+    Value = PlayerList[1] or "",
+    Callback = function(option)
+        _G.SelectedPlayer = option
+    end
+})
+
+RefreshPlayerButton = Tabs.CombatTab:Button({
+    Title = "Refresh Player",
+    Callback = function()
+        local NewList = GetNewPlayerList()
+        -- FIX: Dùng SetValues thay vì Refresh
+        SelectedPlayerDropdown:SetValues(NewList)
+    end
+})
+
+SpectatePlayerToggle = Tabs.CombatTab:Toggle({
+    Title = "Spectate Player",
+    Value = false,
+    Callback = function(state)
+        SpectatePlys = state
+        spawn(function()
+            while SpectatePlys do
+                pcall(function()
+                    local target = game:GetService("Players"):FindFirstChild(_G.SelectedPlayer)
+                    if target and target.Character then
+                        workspace.Camera.CameraSubject = target.Character.Humanoid
+                    end
+                end)
+                task.wait(0.1)
+            end
+            workspace.Camera.CameraSubject = game.Players.LocalPlayer.Character.Humanoid
+        end)
+    end
+})
+
+TeleportToPlayerToggle = Tabs.CombatTab:Toggle({
+    Title = "Teleport To Player",
+    Value = false,
+    Callback = function(state)
+        _G.TeleportToPlayer = state
+        pcall(function()
+            if _G.TeleportToPlayer then
+                spawn(function()
+                    while _G.TeleportToPlayer do
+                        local target = game:GetService("Players"):FindFirstChild(_G.SelectedPlayer)
+                        if target and target.Character then
+                            -- Dùng hàm topos hoặc TweenPlayer của ông
+                            topos(target.Character.HumanoidRootPart.CFrame)
+                        end
+                        task.wait()
+                    end
+                    StopTween(_G.TeleportToPlayer)
+                end)
+            end
+        end)
+    end
+})
+
+-- [[ THÊM AUTO KILL PLAYER CỦA ÔNG ]]
+AutoKillPlayerToggle = Tabs.CombatTab:Toggle({
+    Title = "Auto Kill Player",
+    Value = false,
+    Callback = function(state)
+        _G.AutoKillPlayer = state
+        -- Kích hoạt Fast Attack có sẵn
+        if _G.rz_FastAttack then
+            _G.rz_FastAttack.Settings.AutoClick = state
+        end
+    end
+})
+
+spawn(function()
+    while task.wait() do
+        if _G.AutoKillPlayer and _G.SelectedPlayer then
+            pcall(function()
+                local target = game.Players:FindFirstChild(_G.SelectedPlayer)
+                if target and target.Character and target.Character.Humanoid.Health > 0 then
+                    EquipWeapon(_G.SelectWeapon)
+                    AutoHaki()
+                    topos(target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0))
+                    
+                    -- CHỈ GỌI HÀM ATTACK CỦA ÔNG
+                    if _G.rz_FastAttack then
+                        _G.rz_FastAttack:BladeHits()
+                    end
+                end
+            end)
+        end
+    end
+end)
+-- [[ TRẢ LẠI ĐẦY ĐỦ AIMBOT & SKILLS - MINH DÁN VÀO NHÉ ]]
+
+-- Section bên phải cho Aimbot và Kỹ năng
+CombatSectionRight = Tabs.CombatTab:Section({
+    Title = "Skills & Aimbot",
+    Side = "Right"
+})
+
+-- 1. NHÓM AIMBOT
+AimbotGunToggle = CombatSectionRight:Toggle({
+    Title = "Aimbot Gun",
+    Value = false,
+    Callback = function(v)
+        _G.Aimbot_Gun = v
+    end
+})
+
+AimbotSkillNearestToggle = CombatSectionRight:Toggle({
+    Title = "Aimbot Skill Nearest",
+    Value = false,
+    Callback = function(v)
+        AimSkillNearest = v
+    end
+})
+
+-- 2. NHÓM AUTO SKILLS (Z, X, C, V, F)
+AutoSkillZToggle = CombatSectionRight:Toggle({
+    Title = "Auto Use Skill Z",
+    Value = true,
+    Callback = function(v)
+        SkillZ = v
+    end
+})
+
+AutoSkillXToggle = CombatSectionRight:Toggle({
+    Title = "Auto Use Skill X",
+    Value = false,
+    Callback = function(v)
+        SkillX = v
+    end
+})
+
+AutoSkillCToggle = CombatSectionRight:Toggle({
+    Title = "Auto Use Skill C",
+    Value = false,
+    Callback = function(v)
+        SkillC = v
+    end
+})
+
+AutoSkillVToggle = CombatSectionRight:Toggle({
+    Title = "Auto Use Skill V",
+    Value = false,
+    Callback = function(v)
+        SkillV = v
+    end
+})
+
+AutoSkillFToggle = CombatSectionRight:Toggle({
+    Title = "Auto Use Skill F",
+    Value = false,
+    Callback = function(v)
+        SkillF = v
+    end
+})
+
+-- 3. NHÓM MISC (SAFE MODE, PVP, RESPAWN)
+CombatSectionMisc = Tabs.CombatTab:Section({
+    Title = "Misc PvP",
+    Side = "Left"
+})
+
+EnablePvPToggle = CombatSectionMisc:Toggle({
+    Title = "Enable PvP",
+    Value = false,
+    Callback = function(v)
+        _G.EnabledPvP = v
+    end
+})
+
+SafeModeToggle = CombatSectionMisc:Toggle({
+    Title = "Safe Mode",
+    Value = false,
+    Callback = function(v)
+        _G.SafeMode = v
+        StopTween(_G.SafeMode)
+    end
+})
+
+RespawnButton = CombatSectionMisc:Button({
+    Title = "Respawn (Pirates)",
+    Callback = function()
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("SetTeam", "Pirates")
+    end
+})
+
+-- [[ VÒNG LẶP LOGIC CHO CÁC CHỨC NĂNG TRÊN ]]
+
+-- Safe Mode Loop (Bay lên trời)
+spawn(function()
+    while task.wait() do
+        if _G.SafeMode then
+            pcall(function()
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, 200, 0)
+            end)
+        end
+    end
+end)
+
+-- Enable PvP Loop
+spawn(function()
+    while task.wait(0.5) do
+        if _G.EnabledPvP then
+            pcall(function()
+                if game:GetService("Players").LocalPlayer.PlayerGui.Main.PvpDisabled.Visible == true then
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("EnablePvp")
+                end
+            end)
+        end
+    end
+end)
+
+-- Logic Aimbot Skill (Dựa trên MousePos hoặc RemoteEvent của ông)
+spawn(function()
+    game:GetService("RunService").RenderStepped:Connect(function()
+        if AimSkillNearest and TargetPlayerAim then
+            pcall(function()
+                local myChar = game.Players.LocalPlayer.Character
+                local tool = myChar and myChar:FindFirstChildOfClass("Tool")
+                local target = game.Players:FindFirstChild(TargetPlayerAim)
+                local targetHRP = target and target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+                
+                if tool and targetHRP then
+                    if myChar[tool.Name]:FindFirstChild("MousePos") then
+                        myChar[tool.Name].RemoteEvent:FireServer(targetHRP.Position)
+                    end
+                end
+            end)
+        end
+    end)
+end)
 
 local IslandList = {};
 if World1 then
@@ -8769,39 +9230,7 @@ function NextRaidIsland()
 		end;
 	end;
 end;
-function AttackRaid()
-    -- Chỉ đánh khi bật Auto Raid hoặc Law Raid
-    if not (_G.Settings.Raid["Auto Raid"] or _G.Settings.Raid["Law Raid"]) then return end
 
-    pcall(function()
-        local Net = game:GetService("ReplicatedStorage").Modules.Net
-        local RegAttack = Net:FindFirstChild("RE/RegisterAttack")
-        local RegHit = Net:FindFirstChild("RE/RegisterHit")
-        local Character = game.Players.LocalPlayer.Character
-        
-        -- Kiểm tra vũ khí trên tay
-        local Weapon = Character:FindFirstChildOfClass("Tool")
-        if not Weapon then return end 
-
-        -- Lệnh chém (M1)
-        if RegAttack then RegAttack:FireServer(0) end
-
-        -- Gây sát thương diện rộng (Hit)
-        if RegHit and Character:FindFirstChild("HumanoidRootPart") then
-            local Enemies = game:GetService("Workspace").Enemies:GetChildren()
-            for i = 1, #Enemies do
-                local v = Enemies[i]
-                if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-                    local dist = (v.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude
-                    -- Tầm đánh 65 studs là cực chuẩn cho Raid
-                    if dist < 65 then
-                        RegHit:FireServer(v.HumanoidRootPart, {[1] = v.HumanoidRootPart})
-                    end
-                end
-            end
-        end
-    end)
-end;
 -- SỬA LẠI HÀM KIỂM TRA QUÁI (Để không bị trả về false sai)
 function CheckMonRaids()
     local Enemies = game:GetService("Workspace").Enemies:GetChildren()
@@ -8829,29 +9258,20 @@ spawn(function()
                                 -- Kiểm tra khoảng cách để bắt đầu chuỗi đánh
                                 if (v.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude <= 500 then
                                     -- Trong vòng lặp Auto Raid của ông
+									-- Trong vòng lặp Raid
 									repeat
-									    local AttackSpeed = _G.Settings.Main["Attack Speed"] or 0
-									    task.wait(AttackSpeed) -- Dùng task.wait() để đánh nhanh nhất có thể
+									    task.wait(_G.Settings.Main["Attack Speed"] or 0) -- Chỉnh theo Slider của ông
 									    if v and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
-									        pcall(function()
-									            -- 1. Luôn cầm vũ khí trước
-									            local SelectedWeapon = _G.Settings.Main["Selected Weapon"]
-												if not game.Players.LocalPlayer.Character:FindFirstChild(SelectedWeapon) then
-													EquipWeapon(SelectedWeapon)
-												end
-									            -- 2. Gọi hàm đánh dành riêng cho Raid
-									            AttackRaid()
-
-									            -- 3. Bật Haki
-									            AutoHaki()
-	
-									            -- 4. Giữ khoảng cách (Đứng trên đầu quái 10 studs để không bị quái đánh)
-									            TweenPlayer(v.HumanoidRootPart.CFrame * Pos)
-            
-									            -- Đóng băng quái để không bị văng
-									            v.Humanoid.WalkSpeed = 0
-									        end)
-									    end
+									        -- Tự động cầm vũ khí theo Menu
+									        EquipWeapon(_G.Settings.Main["Selected Weapon"])
+        
+									        -- Gọi hàm Fast Attack mới thêm vào
+									        Attack() 
+        
+										    -- Giữ vị trí theo Slider Pos của Minh
+									        TweenPlayer(v.HumanoidRootPart.CFrame * Pos)
+									        AutoHaki()
+								    	end
 									until not _G.Settings.Raid["Auto Raid"] or not v.Parent or v.Humanoid.Health <= 0
                                 end
                             end
