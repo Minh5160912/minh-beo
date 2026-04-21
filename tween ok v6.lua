@@ -4696,295 +4696,37 @@ Useskills = function(I, e)
 local J = getrawmetatable(game);
 local i = J.__namecall;
 setreadonly(J, false);
-J.__namecall = newcclosure(function(...)
-		local I = getnamecallmethod();
-		local e = { ... };
-		if tostring(I) == "FireServer" then
-			if tostring(e[1]) == "RemoteEvent" then
-				if tostring(e[2]) ~= "true" and tostring(e[2]) ~= "false" then
-					if _G.FarmMastery_G and not SoulGuitar or _G.FarmMastery_Dev or _G.FarmBlazeEM or _G.Prehis_Skills or _G.SeaBeast1 or _G.FishBoat or _G.PGB or _G.Leviathan1 or _G.Complete_Trials or _G.AimMethod and ABmethod == "AimBots Skill" or _G.AimMethod and ABmethod == "Auto Aimbots" then
-						e[2] = MousePos;
-						return i(unpack(e));
-					end;
-				end;
-			end;
-		end;
-		return i(...);
-	end);
-GetConnectionEnemies = function(I)
-		for e, K in pairs(replicated:GetChildren()) do
-			if K:IsA("Model") and ((typeof(I) == "table" and table.find(I, K.Name) or K.Name == I) and (K:FindFirstChild("Humanoid") and K.Humanoid.Health > 0)) then
-				return K;
-			end;
-		end;
-		for e, K in next, game.Workspace.Enemies:GetChildren() do
-			if K:IsA("Model") and ((typeof(I) == "table" and table.find(I, K.Name) or K.Name == I) and (K:FindFirstChild("Humanoid") and K.Humanoid.Health > 0)) then
-				return K;
-			end;
-		end;
-	end;
-LowCpu = function()
-		local I = true;
-		local e = game;
-		local K = e.Workspace;
-		local n = e.Lighting;
-		local d = K.Terrain;
-		d.WaterWaveSize = 0;
-		d.WaterWaveSpeed = 0;
-		d.WaterReflectance = 0;
-		d.WaterTransparency = 0;
-		n.GlobalShadows = false;
-		n.FogEnd = 9000000000.0;
-		n.Brightness = 1;
-		(settings()).Rendering.QualityLevel = "Level01";
-		for e, K in pairs(e:GetDescendants()) do
-			if K:IsA("Part") or K:IsA("Union") or K:IsA("CornerWedgePart") or K:IsA("TrussPart") then
-				K.Material = "Plastic";
-				K.Reflectance = 0;
-			elseif K:IsA("Decal") or K:IsA("Texture") and I then
-				K.Transparency = 1;
-			elseif K:IsA("ParticleEmitter") or K:IsA("Trail") then
-				K.Lifetime = NumberRange.new(0);
-			elseif K:IsA("Explosion") then
-				K.BlastPressure = 1;
-				K.BlastRadius = 1;
-			elseif K:IsA("Fire") or K:IsA("SpotLight") or K:IsA("Smoke") or K:IsA("Sparkles") then
-				K.Enabled = false;
-			elseif K:IsA("MeshPart") then
-				K.Material = "Plastic";
-				K.Reflectance = 0;
-				K.TextureID = 10385902758728957;
-			end;
-		end;
-		for I, e in pairs(n:GetChildren()) do
-			if e:IsA("BlurEffect") or e:IsA("SunRaysEffect") or e:IsA("ColorCorrectionEffect") or e:IsA("BloomEffect") or e:IsA("DepthOfFieldEffect") then
-				e.Enabled = false;
-			end;
-		end;
-	end;
-CheckF = function()
-		if GetBP("Dragon-Dragon") or GetBP("Gas-Gas") or GetBP("Yeti-Yeti") or GetBP("Kitsune-Kitsune") or GetBP("T-Rex-T-Rex") then
-			return true;
-		end;
-	end;
-CheckBoat = function()
-		for I, e in pairs(workspace.Boats:GetChildren()) do
-			if tostring(e.Owner.Value) == tostring(plr.Name) then
-				return e;
-			end;
-		end;
-		return false;
-	end;
-CheckEnemiesBoat = function()
-		for I, e in pairs(workspace.Enemies:GetChildren()) do
-			if e.Name == "FishBoat" and (e:FindFirstChild("Health")).Value > 0 then
-				return true;
-			end;
-		end;
-		return false;
-	end;
-CheckPirateGrandBrigade = function()
-		for I, e in pairs(workspace.Enemies:GetChildren()) do
-			if (e.Name == "PirateGrandBrigade" or e.Name == "PirateBrigade") and (e:FindFirstChild("Health")).Value > 0 then
-				return true;
-			end;
-		end;
-		return false;
-	end;
-CheckShark = function()
-		for I, e in pairs(workspace.Enemies:GetChildren()) do
-			if e.Name == "Shark" and G.Alive(e) then
-				return true;
-			end;
-		end;
-		return false;
-	end;
-CheckTerrorShark = function()
-		for I, e in pairs(workspace.Enemies:GetChildren()) do
-			if e.Name == "Terrorshark" and G.Alive(e) then
-				return true;
-			end;
-		end;
-		return false;
-	end;
-CheckPiranha = function()
-		for I, e in pairs(workspace.Enemies:GetChildren()) do
-			if e.Name == "Piranha" and G.Alive(e) then
-				return true;
-			end;
-		end;
-		return false;
-	end;
-CheckFishCrew = function()
-		for I, e in pairs(workspace.Enemies:GetChildren()) do
-			if (e.Name == "Fish Crew Member" or e.Name == "Haunted Crew Member") and G.Alive(e) then
-				return true;
-			end;
-		end;
-		return false;
-	end;
-CheckHauntedCrew = function()
-		for I, e in pairs(workspace.Enemies:GetChildren()) do
-			if e.Name == "Haunted Crew Member" and G.Alive(e) then
-				return true;
-			end;
-		end;
-		return false;
-	end;
-CheckSeaBeast = function()
-		if workspace.SeaBeasts:FindFirstChild("SeaBeast1") then
-			return true;
-		end;
-		return false;
-	end;
-CheckLeviathan = function()
-		if workspace.SeaBeasts:FindFirstChild("Leviathan") then
-			return true;
-		end;
-		return false;
-	end;
-UpdStFruit = function()
-		for I, e in next, plr.Backpack:GetChildren() do
-			StoreFruit = e:FindFirstChild("EatRemote", true);
-			if StoreFruit then
-				replicated.Remotes.CommF_:InvokeServer("StoreFruit", StoreFruit.Parent:GetAttribute("OriginalName"), plr.Backpack:FindFirstChild(e.Name));
-			end;
-		end;
-	end;
-collectFruits = function(I)
-		if I then
-			local I = plr.Character;
-			for e, K in pairs(workspace:GetChildren()) do
-				if string.find(K.Name, "Fruit") then
-					K.Handle.CFrame = I.HumanoidRootPart.CFrame;
-				end;
-			end;
-		end;
-	end;
-Getmoon = function()
-		if World1 then
-			return Lighting.FantasySky.MoonTextureId;
-		elseif World2 then
-			return Lighting.FantasySky.MoonTextureId;
-		elseif World3 then
-			return Lighting.Sky.MoonTextureId;
-		end;
-	end;
-DropFruits = function()
-		for I, e in next, plr.Backpack:GetChildren() do
-			if string.find(e.Name, "Fruit") then
-				EquipWeapon(e.Name);
-				wait(.1);
-				if plr.PlayerGui.Main.Dialogue.Visible == true then
-					plr.PlayerGui.Main.Dialogue.Visible = false;
-				end;
-				EquipWeapon(e.Name);
-				(plr.Character:FindFirstChild(e.Name)).EatRemote:InvokeServer("Drop");
-			end;
-		end;
-		for I, e in pairs(plr.Character:GetChildren()) do
-			if string.find(e.Name, "Fruit") then
-				EquipWeapon(e.Name);
-				wait(.1);
-				if plr.PlayerGui.Main.Dialogue.Visible == true then
-					plr.PlayerGui.Main.Dialogue.Visible = false;
-				end;
-				EquipWeapon(e.Name);
-				(plr.Character:FindFirstChild(e.Name)).EatRemote:InvokeServer("Drop");
-			end;
-		end;
-	end;
-GetBP = function(I)
-		return plr.Backpack:FindFirstChild(I) or plr.Character:FindFirstChild(I);
-	end;
-GetIn = function(I)
-		for e, K in pairs(replicated.Remotes.CommF_:InvokeServer("getInventory")) do
-			if type(K) == "table" then
-				if K.Name == I or plr.Character:FindFirstChild(I) or plr.Backpack:FindFirstChild(I) then
-					return true;
-				end;
-			end;
-		end;
-		return false;
-	end;
-GetM = function(I)
-		for e, K in pairs(replicated.Remotes.CommF_:InvokeServer("getInventory")) do
-			if type(K) == "table" then
-				if K.Type == "Material" then
-					if K.Name == I then
-						return K.Count;
-					end;
-				end;
-			end;
-		end;
-		return 0;
-	end;
-GetWP = function(I)
-		for e, K in pairs(replicated.Remotes.CommF_:InvokeServer("getInventory")) do
-			if type(K) == "table" then
-				if K.Type == "Sword" then
-					if K.Name == I or plr.Character:FindFirstChild(I) or plr.Backpack:FindFirstChild(I) then
-						return true;
-					end;
-				end;
-			end;
-		end;
-		return false;
-	end;
 getInfinity_Ability = function(I, e)
-		if not Root then
-			return;
-		end;
-		if I == "Soru" and e then
-			for I, K in next, getgc() do
-				if plr.Character.Soru then
-					if typeof(K) == "function" and (getfenv(K)).script == plr.Character.Soru then
-						for I, K in next, getupvalues(K) do
-							if typeof(K) == "table" then
-								repeat
-									wait(Sec);
-									K.LastUse = 0;
-								until not e or plr.Character.Humanoid.Health <= 0;
-							end;
-						end;
-					end;
-				end;
-			end;
-		elseif I == "Energy" and e then
-			plr.Character.Energy.Changed:connect(function()
-				if e then
-					plr.Character.Energy.Value = Energy;
-				end;
-			end);
-		elseif I == "Observation" and e then
-			local I = plr.VisionRadius;
-			I.Value = math.huge;
-		end;
-	end;
-Hop = function()
-		pcall(function()
-			for I = math.random(1, math.random(40, 75)), 100, 1 do
-				local e = replicated.__ServerBrowser:InvokeServer(I);
-				for I, e in next, e do
-					if tonumber(e.Count) < 12 then
-						TeleportService:TeleportToPlaceInstance(game.PlaceId, I);
-					end;
-				end;
-			end;
-		end);
-	end;
-local C = Instance.new("Part", workspace);
-C.Size = Vector3.new(1, 1, 1);
-C.Name = "Rip_Indra";
-C.Anchored = true;
-C.CanCollide = false;
-C.CanTouch = false;
-C.Transparency = 1;
-
-local M = workspace:FindFirstChild(C.Name);
-if M and M ~= C then
-	M:Destroy();
+    if not Root then
+        return;
+    end;
+    if I == "Soru" and e then
+        for I, K in next, getgc() do
+            if plr.Character.Soru then
+                if typeof(K) == "function" and (getfenv(K)).script == plr.Character.Soru then
+                    for I, K in next, getupvalues(K) do
+                        if typeof(K) == "table" then
+                            repeat
+                                wait(Sec);
+                                K.LastUse = 0;
+                            until not e or plr.Character.Humanoid.Health <= 0;
+                        end;
+                    end;
+                end;
+            end;
+        end;
+    elseif I == "Energy" and e then
+        plr.Character.Energy.Changed:connect(function()
+            if e then
+                plr.Character.Energy.Value = Energy;
+            end;
+        end);
+    elseif I == "Observation" and e then
+        local I = plr.VisionRadius;
+        I.Value = math.huge;
+    end;
 end;
+
 EliteHunterSection = Tabs.OthersTab:Section({
 	Title = "Elite Hunter",
 	TextXAlignment = "Left"
@@ -7584,11 +7326,34 @@ spawn(function()
 end);
 
 -- Toggle vô hạn Mink V3
+-- 1. ĐỊNH NGHĨA HÀM TRƯỚC (Giữ nguyên từ file gốc của bạn)
+_G.SaveData = _G.SaveData or {}
+
+function LoadSettings()
+    -- ... code load file của bạn ...
+end
+
+function GetSetting(name, default)
+    return _G.SaveData[name] ~= nil and _G.SaveData[name] or default
+end
+
+-- 2. GỌI LOAD SETTINGS ĐỂ ĐỔ DỮ LIỆU VÀO _G.SaveData
+LoadSettings()
+
+-- 3. SAU ĐÓ MỚI ĐƯỢC KHAI BÁO BẢNG LocalPlayer
+LocalPlayer = {
+    ["Infinite Energy"] = GetSetting("InfEnergy_Save", false),
+    ["Infinite Ability"] = GetSetting("InfAbility_Save", true),
+    ["Infinite Geppo"] = GetSetting("InfGeppo_Save", false),
+    ["Infinite Soru"] = GetSetting("InfSoru_Save", false),
+    ["Dodge No Cooldown"] = GetSetting("DodgeNoCD_Save", false),
+}
+-- Toggle vô hạn Mink V3
 Tabs.LocalPlayerTab:Toggle({
     Title = "Instance Mink V3 [ INF ]",
-    Value = _G.Settings.LocalPlayer["Infinite Ability"];
-    Callback = function(state)
-        _G.InfAblities = state
+    Value = GetSetting("InfAblities_Save", false),
+    Callback = function(value)
+        _G.InfAblities = value
         _G.SaveData["InfAblities_Save"] = value
         SaveSettings()
         
@@ -7618,15 +7383,13 @@ Tabs.LocalPlayerTab:Toggle({
     end
 })
 
-
-
 -- Toggle vô hạn năng lượng
 Tabs.LocalPlayerTab:Toggle({
     Title = "Instance Energy [ INF ]",
-    Value = _G.Settings.LocalPlayer["Infinite Energy"];
-    Callback = function(Value)
-        _G.infEnergy = Value
-        _G.Settings.LocalPlayer["Infinite Energy"] = Value
+    Value = GetSetting("infEnergy_Save", false),
+    Callback = function(value)
+        _G.infEnergy = value
+        _G.SaveData["infEnergy_Save"] = value
         SaveSettings()
         getInfinity_Ability("Energy", _G.infEnergy)
     end
@@ -7635,20 +7398,22 @@ Tabs.LocalPlayerTab:Toggle({
 -- Toggle vô hạn Soru
 Tabs.LocalPlayerTab:Toggle({
     Title = "Instance Soru [ INF ]",
-    Value = _G.Settings.LocalPlayer["Infinite Soru"],
-    Callback = function(Value)
-        _G.InfSoru = Value
-        _G.Settings.LocalPlayer["Infinite Soru"] = Value
+    Value = GetSetting("InfSoru_Save", false),
+    Callback = function(value)
+        _G.InfSoru = value
+        _G.SaveData["InfSoru_Save"] = value
         SaveSettings()
         getInfinity_Ability("Soru", _G.InfSoru)
     end
 })
+
+-- Toggle vô hạn tầm nhìn Observation
 Tabs.LocalPlayerTab:Toggle({
     Title = "Instance Observation Range [ INF ]",
-    Value = false,
-    Callback = function(State)
-        _G.InfiniteObRange = State
-        _G.SaveData["InfiniteObRange_Save"] = State
+    Value = GetSetting("InfiniteObRange_Save", false),
+    Callback = function(value)
+        _G.InfiniteObRange = value
+        _G.SaveData["InfiniteObRange_Save"] = value
         SaveSettings()
         getInfinity_Ability("Observation", _G.InfiniteObRange)
     end
