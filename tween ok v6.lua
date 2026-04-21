@@ -1,5 +1,5 @@
 ---v5
-print("hello what are you looking")
+print("hello what are looking")
 local WindUI = (loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua")))();
 local Window = WindUI:CreateWindow({
     Title = "Minh BELL Hub",
@@ -414,13 +414,16 @@ end;
 	end;
 end;
 (getgenv()).Load();
-if game.PlaceId == 2753915549 then
-	World1 = true;
-elseif game.PlaceId == 4442272183 then
-	World2 = true;
-elseif game.PlaceId == 7449423635 then
-	World3 = true;
-end;
+local placeId = game.PlaceId
+if placeId == 2753915549 or placeId == 85211729168715 then
+    World1 = true
+elseif placeId == 4442272183 or placeId == 79091703265657 then
+    World2 = true
+elseif placeId == 7449423635 or placeId == 100117331123089 then
+    World3 = true
+else
+    plr:Kick("❌ Error Blox Fruits - World not recognized")
+end
 function CheckQuest()
 	MyLevel = (game:GetService("Players")).LocalPlayer.Data.Level.Value;
 	if World1 then
@@ -1050,7 +1053,7 @@ function CheckQuest()
 			NameMon = "Skull Slayer";
 			CFrameQuest = CFrame.new(-16661.890625, 105.2862319946289, 1576.69775390625);
 			CFrameMon = CFrame.new(-16885.203125, 114.12911224365234, 1627.949951171875);
-		elseif I >= 2600 and I <= 2624 then
+		elseif MyLevel >= 2600 and MyLevel <= 2624 then
 			PosQ = CFrame.new(10778.875, -2087.72437, 9265.18359, 0.934615612, -9.33109447e-08, -0.355659455, 9.17655143e-08, 1, -2.12154276e-08, 0.355659455, -1.28090019e-08, 0.934615612)
 			if (getgenv().AutoFarm or _G.Level) and (PosQ.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
 				_tp(CFrame.new(-16269.7041, 25.2288494, 1373.65955, 0.997390985, 1.47309942e-09, -0.0721890926, -4.00651912e-09, 0.99999994, -2.51183763e-09, 0.0721890852, 5.75363091e-10, 0.997390926))
@@ -1065,7 +1068,7 @@ function CheckQuest()
 			Qname = "SubmergedQuest1"
 			NameMon = "Reef Bandit"
 			PosM = CFrame.new(11019.1318, -2146.06812, 9342.3916, -0.719955266, -1.74275385e-08, 0.69402045, 5.76556367e-08, 1, 8.49211546e-08, -0.69402045, 1.01153624e-07, -0.719955266)
-		elseif I >= 2625 and I <= 2649 then
+		elseif MyLevel >= 2625 and MyLevel <= 2649 then
 			PosQ = CFrame.new(10778.875, -2087.72437, 9265.18359, 0.934615612, -9.33109447e-08, -0.355659455, 9.17655143e-08, 1, -2.12154276e-08, 0.355659455, -1.28090019e-08, 0.934615612)
 			if (getgenv().AutoFarm or _G.Level) and (PosQ.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
 				_tp(CFrame.new(-16269.7041, 25.2288494, 1373.65955, 0.997390985, 1.47309942e-09, -0.0721890926, -4.00651912e-09, 0.99999994, -2.51183763e-09, 0.0721890852, 5.75363091e-10, 0.997390926))
@@ -1080,7 +1083,7 @@ function CheckQuest()
 			Qname = "SubmergedQuest1"
 			NameMon = "Coral Pirate"
 			PosM = CFrame.new(10808.6006, -2030.36145, 9364.2334, -0.775185347, -0.0359364748, 0.6307109, 0.0615428537, 0.989336014, 0.132010356, -0.628728986, 0.141148239, -0.764707148)
-		elseif I >= 2650 and I <= 2674 then
+		elseif MyLevel >= 2650 and MyLevel <= 2674 then
 			PosQ = CFrame.new(10880.6855, -2086.20044, 10032.624, -0.321384728, 9.87648434e-08, -0.946948707, 7.13271007e-08, 1, 8.00902953e-08, 0.946948707, -4.18033075e-08, -0.321384728)
 			if (getgenv().AutoFarm or _G.Level) and (PosQ.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
 				_tp(CFrame.new(-16269.7041, 25.2288494, 1373.65955, 0.997390985, 1.47309942e-09, -0.0721890926, -4.00651912e-09, 0.99999994, -2.51183763e-09, 0.0721890852, 5.75363091e-10, 0.997390926))
@@ -1095,7 +1098,7 @@ function CheckQuest()
 			Qname = "SubmergedQuest2"
 			NameMon = "Sea Chanter"
 			PosM = CFrame.new(10671.2715, -2057.59155, 10047.2588, -0.846484065, -3.11045447e-08, 0.532414079, -5.55383117e-08, 1, -2.98785316e-08, -0.532414079, -5.48610757e-08, -0.846484065)
-		elseif I >= 2675 and I <= 2699 then
+		elseif MyLevel >= 2675 and MyLevel <= 2699 then
 			PosQ = CFrame.new(10880.6855, -2086.20044, 10032.624, -0.321384728, 9.87648434e-08, -0.946948707, 7.13271007e-08, 1, 8.00902953e-08, 0.946948707, -4.18033075e-08, -0.321384728)
 			if (getgenv().AutoFarm or _G.Level) and (PosQ.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
 				_tp(CFrame.new(-16269.7041, 25.2288494, 1373.65955, 0.997390985, 1.47309942e-09, -0.0721890926, -4.00651912e-09, 0.99999994, -2.51183763e-09, 0.0721890852, 5.75363091e-10, 0.997390926))
@@ -1110,7 +1113,7 @@ function CheckQuest()
 			Qname = "SubmergedQuest2"
 			NameMon = "Ocean Prophet"
 			PosM = CFrame.new(11008.5195, -2007.72839, 10223.0791, -0.688615739, 2.33523378e-09, -0.725126445, 2.99292546e-09, 1, 3.78221315e-10, 0.725126445, -1.90980032e-09, -0.688615739)
-		elseif I >= 2700 and I <= 2724 then
+		elseif MyLevel >= 2700 and MyLevel <= 2724 then
 			PosQ = CFrame.new(9640.08789, -1992.44507, 9613.65234, -0.957327187, 4.11991223e-08, 0.289006323, 1.5775445e-08, 1, -9.02985846e-08, -0.289006323, -8.18860855e-08, -0.957327187)
 			if (getgenv().AutoFarm or _G.Level) and (PosQ.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
 				_tp(CFrame.new(-16269.7041, 25.2288494, 1373.65955, 0.997390985, 1.47309942e-09, -0.0721890926, -4.00651912e-09, 0.99999994, -2.51183763e-09, 0.0721890852, 5.75363091e-10, 0.997390926))
@@ -1125,7 +1128,7 @@ function CheckQuest()
 			Qname = "SubmergedQuest3"
 			NameMon = "High Disciple"
 			PosM = CFrame.new(9750.41602, -1966.93884, 9753.36035, -0.749824047, 5.57797613e-08, -0.661637306, 2.03500754e-08, 1, 6.1243199e-08, 0.661637306, 3.24572511e-08, -0.749824047)
-		elseif I >= 2725 then
+		elseif MyLevel >= 2725 then
 			PosQ = CFrame.new(9640.08789, -1992.44507, 9613.65234, -0.957327187, 4.11991223e-08, 0.289006323, 1.5775445e-08, 1, -9.02985846e-08, -0.289006323, -8.18860855e-08, -0.957327187)
 			if (getgenv().AutoFarm or _G.Level) and (PosQ.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
 				_tp(CFrame.new(-16269.7041, 25.2288494, 1373.65955, 0.997390985, 1.47309942e-09, -0.0721890926, -4.00651912e-09, 0.99999994, -2.51183763e-09, 0.0721890852, 5.75363091e-10, 0.997390926))
@@ -2210,8 +2213,44 @@ if not getgenv().rz_FastAttack then
 end
 
 local function Attack()
-    -- [GỐC] Kiểm tra điều kiện bật từ Menu (Giữ nguyên điều kiện của Minh)
-    if not (_G.Settings.Main["Auto Farm"] or _G.Settings.Raid["Auto Raid"] or _G.FastAttack) then return end
+    
+	if not (
+        -- Main
+        S.Main["Auto Farm"] or S.Main["Auto Fast Farm"] or S.Main["Auto Farm Fruit Mastery"] or 
+        S.Main["Auto Farm Gun Mastery"] or S.Main["Auto Farm Sword Mastery"] or 
+        S.Main["Auto Summon Tyrant Of The Skies"] or S.Main["Auto Kill Tyrant Of The Skies"] or 
+        S.Main["Auto Farm Mon"] or S.Main["Auto Farm Boss"] or S.Main["Auto Farm All Boss"] or
+        -- Farm
+        S.Farm["Auto Elite Hunter"] or S.Farm["Auto Elite Hunter v2"] or S.Farm["Auto Elite Hunter Hop"] or 
+        S.Farm["Auto Farm Bone"] or S.Farm["Auto Pirate Raid"] or S.Farm["Auto Farm Chest Tween"] or 
+        S.Farm["Auto Chest Hop"] or S.Farm["Auto Farm Chest Mirage"] or S.Farm["Auto Farm Katakuri"] or 
+        S.Farm["Auto Spawn Cake Prince"] or S.Farm["Auto Kill Cake Prince"] or 
+        S.Farm["Auto Kill Dough King"] or S.Farm["Auto Farm Material"] or
+        -- Items
+        S.Items["Auto Second Sea"] or S.Items["Auto Third Sea"] or S.Items["Auto Farm Factory"] or 
+        S.Items["Auto Super Human"] or S.Items["Auto Death Step"] or S.Items["Auto Fishman Karate"] or 
+        S.Items["Auto Electric Claw"] or S.Items["Auto Dragon Talon"] or S.Items["Auto God Human"] or 
+        S.Items["Auto Saber"] or S.Items["Auto Buddy Sword"] or S.Items["Auto Soul Guitar"] or 
+        S.Items["Auto Rengoku"] or S.Items["Auto Hallow Scythe"] or S.Items["Auto Warden Sword"] or 
+        S.Items["Auto Cursed Dual Katana"] or S.Items["Auto Yama"] or S.Items["Auto Tushita"] or 
+        S.Items["Auto Canvander"] or S.Items["Auto Dragon Trident"] or S.Items["Auto Pole"] or 
+        S.Items["Auto Shawk Saw"] or S.Items["Auto Greybeard"] or S.Items["Auto Swan Glasses"] or 
+        S.Items["Auto Arena Trainer"] or S.Items["Auto Dark Dagger"] or S.Items["Auto Rainbow Haki"] or 
+        S.Items["Auto Holy Torch"] or S.Items["Auto Bartilo Quest"] or
+        -- DragonDojo & SeaEvent
+        S.DragonDojo["Auto Farm Blaze Ember"] or S.DragonDojo["Auto Collect Blaze Ember"] or
+        S.SeaEvent["Auto Farm Shark"] or S.SeaEvent["Auto Farm Piranha"] or 
+        S.SeaEvent["Auto Farm Fish Crew Member"] or S.SeaEvent["Auto Farm Ghost Ship"] or 
+        S.SeaEvent["Auto Farm Pirate Brigade"] or S.SeaEvent["Auto Farm Pirate Grand Brigade"] or 
+        S.SeaEvent["Auto Farm Terrorshark"] or S.SeaEvent["Auto Farm Seabeasts"] or
+        -- SeaStack
+        S.SeaStack["Auto Attack Seabeasts"] or S.SeaStack["Auto Kill Lava Golem"] or
+        -- Race & Combat & Raid & Fruit
+        S.Race["Auto Race V2"] or S.Race["Auto Race V3"] or S.Race["Teleport To Place"] or 
+        S.Race["Auto Train"] or S.Race["Auto Kill Player After Trial"] or S.Race["Auto Trial"] or
+        S.Combat["Auto Kill Player Quest"] or S.Raid["Auto Raid"] or S.Raid["Law Raid"] or
+        S.Fruit["Tween To Fruit"] or _G.FastAttack
+    ) then return end
     
     local character = game.Players.LocalPlayer.Character
     if not character or not character:FindFirstChild("Humanoid") or character.Humanoid.Health <= 0 then return end
@@ -2269,8 +2308,44 @@ end
 task.spawn(function()
     while task.wait() do
         -- Chỉ chạy khi _G.FastAttack hoặc Auto Farm được bật
-        if _G.FastAttack or (_G.Settings and (_G.Settings.Main["Auto Farm"] or _G.Settings.Raid["Auto Raid"])) then
-            Attack()
+        if 
+			S.Main["Auto Farm"] or S.Main["Auto Fast Farm"] or S.Main["Auto Farm Fruit Mastery"] or 
+        	S.Main["Auto Farm Gun Mastery"] or S.Main["Auto Farm Sword Mastery"] or 
+        	S.Main["Auto Summon Tyrant Of The Skies"] or S.Main["Auto Kill Tyrant Of The Skies"] or 
+        	S.Main["Auto Farm Mon"] or S.Main["Auto Farm Boss"] or S.Main["Auto Farm All Boss"] or
+        	-- Farm
+        	S.Farm["Auto Elite Hunter"] or S.Farm["Auto Elite Hunter v2"] or S.Farm["Auto Elite Hunter Hop"] or 
+        	S.Farm["Auto Farm Bone"] or S.Farm["Auto Pirate Raid"] or S.Farm["Auto Farm Chest Tween"] or 
+        	S.Farm["Auto Chest Hop"] or S.Farm["Auto Farm Chest Mirage"] or S.Farm["Auto Farm Katakuri"] or 
+        	S.Farm["Auto Spawn Cake Prince"] or S.Farm["Auto Kill Cake Prince"] or 
+        	S.Farm["Auto Kill Dough King"] or S.Farm["Auto Farm Material"] or
+        	-- Items
+        	S.Items["Auto Second Sea"] or S.Items["Auto Third Sea"] or S.Items["Auto Farm Factory"] or 
+        	S.Items["Auto Super Human"] or S.Items["Auto Death Step"] or S.Items["Auto Fishman Karate"] or 
+        	S.Items["Auto Electric Claw"] or S.Items["Auto Dragon Talon"] or S.Items["Auto God Human"] or 
+        	S.Items["Auto Saber"] or S.Items["Auto Buddy Sword"] or S.Items["Auto Soul Guitar"] or 
+        	S.Items["Auto Rengoku"] or S.Items["Auto Hallow Scythe"] or S.Items["Auto Warden Sword"] or 
+        	S.Items["Auto Cursed Dual Katana"] or S.Items["Auto Yama"] or S.Items["Auto Tushita"] or 
+        	S.Items["Auto Canvander"] or S.Items["Auto Dragon Trident"] or S.Items["Auto Pole"] or 
+        	S.Items["Auto Shawk Saw"] or S.Items["Auto Greybeard"] or S.Items["Auto Swan Glasses"] or 
+        	S.Items["Auto Arena Trainer"] or S.Items["Auto Dark Dagger"] or S.Items["Auto Rainbow Haki"] or 
+        	S.Items["Auto Holy Torch"] or S.Items["Auto Bartilo Quest"] or
+        	-- DragonDojo & SeaEvent
+        	S.DragonDojo["Auto Farm Blaze Ember"] or S.DragonDojo["Auto Collect Blaze Ember"] or
+        	S.SeaEvent["Auto Farm Shark"] or S.SeaEvent["Auto Farm Piranha"] or 
+        	S.SeaEvent["Auto Farm Fish Crew Member"] or S.SeaEvent["Auto Farm Ghost Ship"] or 
+        	S.SeaEvent["Auto Farm Pirate Brigade"] or S.SeaEvent["Auto Farm Pirate Grand Brigade"] or 
+        	S.SeaEvent["Auto Farm Terrorshark"] or S.SeaEvent["Auto Farm Seabeasts"] or
+        	-- SeaStack
+        	S.SeaStack["Auto Attack Seabeasts"] or S.SeaStack["Auto Kill Lava Golem"] or
+        	-- Race & Combat & Raid & Fruit
+        	S.Race["Auto Race V2"] or S.Race["Auto Race V3"] or S.Race["Teleport To Place"] or 
+        	S.Race["Auto Train"] or S.Race["Auto Kill Player After Trial"] or S.Race["Auto Trial"] or
+        	S.Combat["Auto Kill Player Quest"] or S.Raid["Auto Raid"] or S.Raid["Law Raid"] or
+        	S.Fruit["Tween To Fruit"] or _G.FastAttack
+		then
+			
+		 Attack()
         end
     end
 end)
@@ -4566,6 +4641,350 @@ EspGearToggle = Tabs.EspTab:Toggle({
 	end
 });
 
+Useskills = function(I, e)
+		if I == "Melee" then
+			weaponSc("Melee");
+			if e == "Z" then
+				vim1:SendKeyEvent(true, "Z", false, game);
+				vim1:SendKeyEvent(false, "Z", false, game);
+			elseif e == "X" then
+				vim1:SendKeyEvent(true, "X", false, game);
+				vim1:SendKeyEvent(false, "X", false, game);
+			elseif e == "C" then
+				vim1:SendKeyEvent(true, "C", false, game);
+				vim1:SendKeyEvent(false, "C", false, game);
+			end;
+		elseif I == "Sword" then
+			weaponSc("Sword");
+			if e == "Z" then
+				vim1:SendKeyEvent(true, "Z", false, game);
+				vim1:SendKeyEvent(false, "Z", false, game);
+			elseif e == "X" then
+				vim1:SendKeyEvent(true, "X", false, game);
+				vim1:SendKeyEvent(false, "X", false, game);
+			end;
+		elseif I == "Blox Fruit" then
+			weaponSc("Blox Fruit");
+			if e == "Z" then
+				vim1:SendKeyEvent(true, "Z", false, game);
+				vim1:SendKeyEvent(false, "Z", false, game);
+			elseif e == "X" then
+				vim1:SendKeyEvent(true, "X", false, game);
+				vim1:SendKeyEvent(false, "X", false, game);
+			elseif e == "C" then
+				vim1:SendKeyEvent(true, "C", false, game);
+				vim1:SendKeyEvent(false, "C", false, game);
+			elseif e == "V" then
+				vim1:SendKeyEvent(true, "V", false, game);
+				vim1:SendKeyEvent(false, "V", false, game);
+			end;
+		elseif I == "Gun" then
+			weaponSc("Gun");
+			if e == "Z" then
+				vim1:SendKeyEvent(true, "Z", false, game);
+				vim1:SendKeyEvent(false, "Z", false, game);
+			elseif e == "X" then
+				vim1:SendKeyEvent(true, "X", false, game);
+				vim1:SendKeyEvent(false, "X", false, game);
+			end;
+		end;
+		if I == "nil" and e == "Y" then
+			vim1:SendKeyEvent(true, "Y", false, game);
+			vim1:SendKeyEvent(false, "Y", false, game);
+		end;
+	end;
+local J = getrawmetatable(game);
+local i = J.__namecall;
+setreadonly(J, false);
+J.__namecall = newcclosure(function(...)
+		local I = getnamecallmethod();
+		local e = { ... };
+		if tostring(I) == "FireServer" then
+			if tostring(e[1]) == "RemoteEvent" then
+				if tostring(e[2]) ~= "true" and tostring(e[2]) ~= "false" then
+					if _G.FarmMastery_G and not SoulGuitar or _G.FarmMastery_Dev or _G.FarmBlazeEM or _G.Prehis_Skills or _G.SeaBeast1 or _G.FishBoat or _G.PGB or _G.Leviathan1 or _G.Complete_Trials or _G.AimMethod and ABmethod == "AimBots Skill" or _G.AimMethod and ABmethod == "Auto Aimbots" then
+						e[2] = MousePos;
+						return i(unpack(e));
+					end;
+				end;
+			end;
+		end;
+		return i(...);
+	end);
+GetConnectionEnemies = function(I)
+		for e, K in pairs(replicated:GetChildren()) do
+			if K:IsA("Model") and ((typeof(I) == "table" and table.find(I, K.Name) or K.Name == I) and (K:FindFirstChild("Humanoid") and K.Humanoid.Health > 0)) then
+				return K;
+			end;
+		end;
+		for e, K in next, game.Workspace.Enemies:GetChildren() do
+			if K:IsA("Model") and ((typeof(I) == "table" and table.find(I, K.Name) or K.Name == I) and (K:FindFirstChild("Humanoid") and K.Humanoid.Health > 0)) then
+				return K;
+			end;
+		end;
+	end;
+LowCpu = function()
+		local I = true;
+		local e = game;
+		local K = e.Workspace;
+		local n = e.Lighting;
+		local d = K.Terrain;
+		d.WaterWaveSize = 0;
+		d.WaterWaveSpeed = 0;
+		d.WaterReflectance = 0;
+		d.WaterTransparency = 0;
+		n.GlobalShadows = false;
+		n.FogEnd = 9000000000.0;
+		n.Brightness = 1;
+		(settings()).Rendering.QualityLevel = "Level01";
+		for e, K in pairs(e:GetDescendants()) do
+			if K:IsA("Part") or K:IsA("Union") or K:IsA("CornerWedgePart") or K:IsA("TrussPart") then
+				K.Material = "Plastic";
+				K.Reflectance = 0;
+			elseif K:IsA("Decal") or K:IsA("Texture") and I then
+				K.Transparency = 1;
+			elseif K:IsA("ParticleEmitter") or K:IsA("Trail") then
+				K.Lifetime = NumberRange.new(0);
+			elseif K:IsA("Explosion") then
+				K.BlastPressure = 1;
+				K.BlastRadius = 1;
+			elseif K:IsA("Fire") or K:IsA("SpotLight") or K:IsA("Smoke") or K:IsA("Sparkles") then
+				K.Enabled = false;
+			elseif K:IsA("MeshPart") then
+				K.Material = "Plastic";
+				K.Reflectance = 0;
+				K.TextureID = 10385902758728957;
+			end;
+		end;
+		for I, e in pairs(n:GetChildren()) do
+			if e:IsA("BlurEffect") or e:IsA("SunRaysEffect") or e:IsA("ColorCorrectionEffect") or e:IsA("BloomEffect") or e:IsA("DepthOfFieldEffect") then
+				e.Enabled = false;
+			end;
+		end;
+	end;
+CheckF = function()
+		if GetBP("Dragon-Dragon") or GetBP("Gas-Gas") or GetBP("Yeti-Yeti") or GetBP("Kitsune-Kitsune") or GetBP("T-Rex-T-Rex") then
+			return true;
+		end;
+	end;
+CheckBoat = function()
+		for I, e in pairs(workspace.Boats:GetChildren()) do
+			if tostring(e.Owner.Value) == tostring(plr.Name) then
+				return e;
+			end;
+		end;
+		return false;
+	end;
+CheckEnemiesBoat = function()
+		for I, e in pairs(workspace.Enemies:GetChildren()) do
+			if e.Name == "FishBoat" and (e:FindFirstChild("Health")).Value > 0 then
+				return true;
+			end;
+		end;
+		return false;
+	end;
+CheckPirateGrandBrigade = function()
+		for I, e in pairs(workspace.Enemies:GetChildren()) do
+			if (e.Name == "PirateGrandBrigade" or e.Name == "PirateBrigade") and (e:FindFirstChild("Health")).Value > 0 then
+				return true;
+			end;
+		end;
+		return false;
+	end;
+CheckShark = function()
+		for I, e in pairs(workspace.Enemies:GetChildren()) do
+			if e.Name == "Shark" and G.Alive(e) then
+				return true;
+			end;
+		end;
+		return false;
+	end;
+CheckTerrorShark = function()
+		for I, e in pairs(workspace.Enemies:GetChildren()) do
+			if e.Name == "Terrorshark" and G.Alive(e) then
+				return true;
+			end;
+		end;
+		return false;
+	end;
+CheckPiranha = function()
+		for I, e in pairs(workspace.Enemies:GetChildren()) do
+			if e.Name == "Piranha" and G.Alive(e) then
+				return true;
+			end;
+		end;
+		return false;
+	end;
+CheckFishCrew = function()
+		for I, e in pairs(workspace.Enemies:GetChildren()) do
+			if (e.Name == "Fish Crew Member" or e.Name == "Haunted Crew Member") and G.Alive(e) then
+				return true;
+			end;
+		end;
+		return false;
+	end;
+CheckHauntedCrew = function()
+		for I, e in pairs(workspace.Enemies:GetChildren()) do
+			if e.Name == "Haunted Crew Member" and G.Alive(e) then
+				return true;
+			end;
+		end;
+		return false;
+	end;
+CheckSeaBeast = function()
+		if workspace.SeaBeasts:FindFirstChild("SeaBeast1") then
+			return true;
+		end;
+		return false;
+	end;
+CheckLeviathan = function()
+		if workspace.SeaBeasts:FindFirstChild("Leviathan") then
+			return true;
+		end;
+		return false;
+	end;
+UpdStFruit = function()
+		for I, e in next, plr.Backpack:GetChildren() do
+			StoreFruit = e:FindFirstChild("EatRemote", true);
+			if StoreFruit then
+				replicated.Remotes.CommF_:InvokeServer("StoreFruit", StoreFruit.Parent:GetAttribute("OriginalName"), plr.Backpack:FindFirstChild(e.Name));
+			end;
+		end;
+	end;
+collectFruits = function(I)
+		if I then
+			local I = plr.Character;
+			for e, K in pairs(workspace:GetChildren()) do
+				if string.find(K.Name, "Fruit") then
+					K.Handle.CFrame = I.HumanoidRootPart.CFrame;
+				end;
+			end;
+		end;
+	end;
+Getmoon = function()
+		if World1 then
+			return Lighting.FantasySky.MoonTextureId;
+		elseif World2 then
+			return Lighting.FantasySky.MoonTextureId;
+		elseif World3 then
+			return Lighting.Sky.MoonTextureId;
+		end;
+	end;
+DropFruits = function()
+		for I, e in next, plr.Backpack:GetChildren() do
+			if string.find(e.Name, "Fruit") then
+				EquipWeapon(e.Name);
+				wait(.1);
+				if plr.PlayerGui.Main.Dialogue.Visible == true then
+					plr.PlayerGui.Main.Dialogue.Visible = false;
+				end;
+				EquipWeapon(e.Name);
+				(plr.Character:FindFirstChild(e.Name)).EatRemote:InvokeServer("Drop");
+			end;
+		end;
+		for I, e in pairs(plr.Character:GetChildren()) do
+			if string.find(e.Name, "Fruit") then
+				EquipWeapon(e.Name);
+				wait(.1);
+				if plr.PlayerGui.Main.Dialogue.Visible == true then
+					plr.PlayerGui.Main.Dialogue.Visible = false;
+				end;
+				EquipWeapon(e.Name);
+				(plr.Character:FindFirstChild(e.Name)).EatRemote:InvokeServer("Drop");
+			end;
+		end;
+	end;
+GetBP = function(I)
+		return plr.Backpack:FindFirstChild(I) or plr.Character:FindFirstChild(I);
+	end;
+GetIn = function(I)
+		for e, K in pairs(replicated.Remotes.CommF_:InvokeServer("getInventory")) do
+			if type(K) == "table" then
+				if K.Name == I or plr.Character:FindFirstChild(I) or plr.Backpack:FindFirstChild(I) then
+					return true;
+				end;
+			end;
+		end;
+		return false;
+	end;
+GetM = function(I)
+		for e, K in pairs(replicated.Remotes.CommF_:InvokeServer("getInventory")) do
+			if type(K) == "table" then
+				if K.Type == "Material" then
+					if K.Name == I then
+						return K.Count;
+					end;
+				end;
+			end;
+		end;
+		return 0;
+	end;
+GetWP = function(I)
+		for e, K in pairs(replicated.Remotes.CommF_:InvokeServer("getInventory")) do
+			if type(K) == "table" then
+				if K.Type == "Sword" then
+					if K.Name == I or plr.Character:FindFirstChild(I) or plr.Backpack:FindFirstChild(I) then
+						return true;
+					end;
+				end;
+			end;
+		end;
+		return false;
+	end;
+getInfinity_Ability = function(I, e)
+		if not Root then
+			return;
+		end;
+		if I == "Soru" and e then
+			for I, K in next, getgc() do
+				if plr.Character.Soru then
+					if typeof(K) == "function" and (getfenv(K)).script == plr.Character.Soru then
+						for I, K in next, getupvalues(K) do
+							if typeof(K) == "table" then
+								repeat
+									wait(Sec);
+									K.LastUse = 0;
+								until not e or plr.Character.Humanoid.Health <= 0;
+							end;
+						end;
+					end;
+				end;
+			end;
+		elseif I == "Energy" and e then
+			plr.Character.Energy.Changed:connect(function()
+				if e then
+					plr.Character.Energy.Value = Energy;
+				end;
+			end);
+		elseif I == "Observation" and e then
+			local I = plr.VisionRadius;
+			I.Value = math.huge;
+		end;
+	end;
+Hop = function()
+		pcall(function()
+			for I = math.random(1, math.random(40, 75)), 100, 1 do
+				local e = replicated.__ServerBrowser:InvokeServer(I);
+				for I, e in next, e do
+					if tonumber(e.Count) < 12 then
+						TeleportService:TeleportToPlaceInstance(game.PlaceId, I);
+					end;
+				end;
+			end;
+		end);
+	end;
+local C = Instance.new("Part", workspace);
+C.Size = Vector3.new(1, 1, 1);
+C.Name = "Rip_Indra";
+C.Anchored = true;
+C.CanCollide = false;
+C.CanTouch = false;
+C.Transparency = 1;
+
+local M = workspace:FindFirstChild(C.Name);
+if M and M ~= C then
+	M:Destroy();
+end;
 EliteHunterSection = Tabs.OthersTab:Section({
 	Title = "Elite Hunter",
 	TextXAlignment = "Left"
@@ -7163,6 +7582,79 @@ spawn(function()
 		end);
 	end;
 end);
+
+-- Toggle vô hạn Mink V3
+Tabs.LocalPlayerTab:Toggle({
+    Title = "Instance Mink V3 [ INF ]",
+    Value = _G.Settings.LocalPlayer["Infinite Ability"];
+    Callback = function(state)
+        _G.InfAblities = state
+        _G.SaveData["InfAblities_Save"] = value
+        SaveSettings()
+        
+        task.spawn(function()
+            while _G.InfAblities do
+                pcall(function()
+                    local char = game.Players.LocalPlayer.Character
+                    if char and char:FindFirstChild("HumanoidRootPart") then
+                        if not char.HumanoidRootPart:FindFirstChild("Agility") then
+                            local agility = game:GetService("ReplicatedStorage").FX.Agility:Clone()
+                            agility.Name = "Agility"
+                            agility.Parent = char.HumanoidRootPart
+                        end
+                    end
+                end)
+                task.wait(0.2)
+            end
+            
+            -- Cleanup khi tắt
+            pcall(function()
+                local char = game.Players.LocalPlayer.Character
+                if char and char.HumanoidRootPart:FindFirstChild("Agility") then
+                    char.HumanoidRootPart.Agility:Destroy()
+                end
+            end)
+        end)
+    end
+})
+
+
+
+-- Toggle vô hạn năng lượng
+Tabs.LocalPlayerTab:Toggle({
+    Title = "Instance Energy [ INF ]",
+    Value = _G.Settings.LocalPlayer["Infinite Energy"];
+    Callback = function(Value)
+        _G.infEnergy = Value
+        _G.Settings.LocalPlayer["Infinite Energy"] = Value
+        SaveSettings()
+        getInfinity_Ability("Energy", _G.infEnergy)
+    end
+})
+
+-- Toggle vô hạn Soru
+Tabs.LocalPlayerTab:Toggle({
+    Title = "Instance Soru [ INF ]",
+    Value = _G.Settings.LocalPlayer["Infinite Soru"],
+    Callback = function(Value)
+        _G.InfSoru = Value
+        _G.Settings.LocalPlayer["Infinite Soru"] = Value
+        SaveSettings()
+        getInfinity_Ability("Soru", _G.InfSoru)
+    end
+})
+Tabs.LocalPlayerTab:Toggle({
+    Title = "Instance Observation Range [ INF ]",
+    Value = false,
+    Callback = function(State)
+        _G.InfiniteObRange = State
+        _G.SaveData["InfiniteObRange_Save"] = State
+        SaveSettings()
+        getInfinity_Ability("Observation", _G.InfiniteObRange)
+    end
+})
+-- Toggle vô hạn tầm nhìn Observation
+
 Tabs.LocalPlayerTab:Toggle({
 	Title = "No Clip",
 	Value = _G.Settings.LocalPlayer["No Clip"],
@@ -8944,49 +9436,55 @@ spawn(function()
     end
 end)
 
-local PlayerList = {}
-local function GetNewPlayerList()
-    local tbl = {}
-    for _, v in pairs(game:GetService("Players"):GetPlayers()) do
-        table.insert(tbl, v.Name)
+
+
+local playerList = {}
+
+-- Hàm cập nhật danh sách người chơi
+local function updatePlayerList()
+    local newList = {}
+    for _, p in ipairs(game:GetService("Players"):GetPlayers()) do
+        if p.Name ~= game.Players.LocalPlayer.Name then
+            table.insert(newList, p.Name)
+        end
     end
-    return tbl
+    return newList
 end
 
-PlayerList = GetNewPlayerList()
-
+-- Dropdown chọn người chơi
 SelectedPlayerDropdown = Tabs.CombatTab:Dropdown({
-    Title = "Choose Player",
-    Values = PlayerList,
-    Value = PlayerList[1] or "",
-    Callback = function(option)
-        _G.SelectedPlayer = option
+    title = "Select Players",
+    Values = updatePlayerList(),
+    Value = nil,
+    Multi = false,
+    Callback = function(value)
+        _G.PlayersList = value
+        -- Lưu cấu hình
+        _G.SaveData["PlayersList"] = value
+        SaveSettings()
     end
 })
-
 RefreshPlayerButton = Tabs.CombatTab:Button({
     Title = "Refresh Player",
     Callback = function()
-        local NewList = GetNewPlayerList()
-        -- FIX: Dùng SetValues thay vì Refresh
-        SelectedPlayerDropdown:SetValues(NewList)
+        PlayerDropdown:Refresh(updatePlayerList(), true)
     end
 })
-
 SpectatePlayerToggle = Tabs.CombatTab:Toggle({
-    Title = "Spectate Player",
+     Title = "Spectate Player",
     Value = false,
-    Callback = function(state)
-        SpectatePlys = state
-        spawn(function()
-            while SpectatePlys do
-                pcall(function()
-                    local target = game:GetService("Players"):FindFirstChild(_G.SelectedPlayer)
-                    if target and target.Character then
-                        workspace.Camera.CameraSubject = target.Character.Humanoid
-                    end
-                end)
-                task.wait(0.1)
+    Callback = function(value)
+        _G.SpectatePlys = value
+        _G.SaveData["SpectatePlys_Save"] = value
+        SaveSettings()
+        
+        task.spawn(function()
+            if value and _G.PlayersList then
+                local target = game:GetService("Players"):FindFirstChild(_G.PlayersList)
+                while _G.SpectatePlys and target and target.Character do
+                    workspace.Camera.CameraSubject = target.Character.Humanoid
+                    task.wait()
+                end
             end
             workspace.Camera.CameraSubject = game.Players.LocalPlayer.Character.Humanoid
         end)
@@ -8996,25 +9494,26 @@ SpectatePlayerToggle = Tabs.CombatTab:Toggle({
 TeleportToPlayerToggle = Tabs.CombatTab:Toggle({
     Title = "Teleport To Player",
     Value = false,
-    Callback = function(state)
-        _G.TeleportToPlayer = state
-        pcall(function()
-            if _G.TeleportToPlayer then
-                spawn(function()
-                    while _G.TeleportToPlayer do
-                        local target = game:GetService("Players"):FindFirstChild(_G.SelectedPlayer)
-                        if target and target.Character then
-                            -- Dùng hàm topos hoặc TweenPlayer của ông
-                            topos(target.Character.HumanoidRootPart.CFrame)
-                        end
-                        task.wait()
+    Callback = function(value)
+        _G.TpPly = value
+        _G.SaveData["TpPly_Save"] = value
+        SaveSettings()
+        
+        task.spawn(function()
+            while _G.TpPly and _G.PlayersList do
+                pcall(function()
+                    local target = game:GetService("Players"):FindFirstChild(_G.PlayersList)
+                    if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+                        _tp(target.Character.HumanoidRootPart.CFrame)
                     end
-                    StopTween(_G.TeleportToPlayer)
                 end)
+                task.wait(0.1)
             end
         end)
     end
 })
+
+
 
 -- [[ THÊM AUTO KILL PLAYER CỦA ÔNG ]]
 AutoKillPlayerToggle = Tabs.CombatTab:Toggle({
@@ -9055,7 +9554,39 @@ CombatSectionRight = Tabs.CombatTab:Section({
     Title = "Skills & Aimbot",
     Side = "Right"
 })
-
+AimbotCamToggle = CombatSectionRight:Toggle({
+    Title = "Aimbot Cam Lock",
+    Value = false,
+    Callback = function(value)
+        _G.AimCam = value
+        _G.SaveData["AimCam_Save"] = value
+        SaveSettings()
+        
+        task.spawn(function()
+            local camera = workspace.CurrentCamera
+            while _G.AimCam do
+                pcall(function()
+                    local closest, dist = nil, math.huge
+                    for _, p in ipairs(game:GetService("Players"):GetPlayers()) do
+                        if p ~= game.Players.LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
+                            if p.Character.Humanoid.Health > 0 then
+                                local d = (p.Character.Head.Position - game.Players.LocalPlayer.Character.Head.Position).Magnitude
+                                if d < dist then
+                                    dist = d
+                                    closest = p
+                                end
+                            end
+                        end
+                    end
+                    if closest and closest.Character then
+                        camera.CFrame = CFrame.new(camera.CFrame.Position, closest.Character.HumanoidRootPart.Position)
+                    end
+                end)
+                task.wait()
+            end
+        end)
+    end
+})
 -- 1. NHÓM AIMBOT
 AimbotGunToggle = CombatSectionRight:Toggle({
     Title = "Aimbot Gun",
@@ -9065,14 +9596,16 @@ AimbotGunToggle = CombatSectionRight:Toggle({
     end
 })
 
+
 AimbotSkillNearestToggle = CombatSectionRight:Toggle({
     Title = "Aimbot Skill Nearest",
     Value = false,
-    Callback = function(v)
-        AimSkillNearest = v
+    Callback = function(value)
+        _G.SilentAim = value
+        _G.SaveData["SilentAim_Save"] = value
+        SaveSettings()
     end
 })
-
 -- 2. NHÓM AUTO SKILLS (Z, X, C, V, F)
 AutoSkillZToggle = CombatSectionRight:Toggle({
     Title = "Auto Use Skill Z",
@@ -9134,6 +9667,40 @@ SafeModeToggle = CombatSectionMisc:Toggle({
     Callback = function(v)
         _G.SafeMode = v
         StopTween(_G.SafeMode)
+    end
+})
+Tabs.CombatTab:Toggle({
+    Title = "Ignore Same Teams",
+    Default = false,
+    Callback = function(value)
+        _G.NoAimTeam = value
+        _G.SaveData["NoAimTeam_Save"] = value
+        SaveSettings()
+    end
+})
+
+-- Toggle tự động chấp nhận đồng minh
+Tabs.CombatTab:Toggle({
+    Title = "Accept Allies",
+    Default =false,
+    Callback = function(value)
+        _G.AcceptAlly = value
+        _G.SaveData["AcceptAlly_Save"] = value
+        SaveSettings()
+        
+        task.spawn(function()
+            while _G.AcceptAlly do
+                pcall(function()
+                    local remote = game:GetService("ReplicatedStorage").Remotes.CommF_
+                    for _, p in ipairs(game:GetService("Players"):GetPlayers()) do
+                        if p.Name ~= game.Players.LocalPlayer.Name then
+                            remote:InvokeServer("AcceptAlly", p.Name)
+                        end
+                    end
+                end)
+                task.wait(1)
+            end
+        end)
     end
 })
 
