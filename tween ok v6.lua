@@ -1,5 +1,5 @@
 ---v5
-
+print("hello what are looking")
 local WindUI = (loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua")))();
 local Window = WindUI:CreateWindow({
     Title = "Minh BELL Hub",
@@ -1050,9 +1050,99 @@ function CheckQuest()
 			NameMon = "Skull Slayer";
 			CFrameQuest = CFrame.new(-16661.890625, 105.2862319946289, 1576.69775390625);
 			CFrameMon = CFrame.new(-16885.203125, 114.12911224365234, 1627.949951171875);
-		end;
-	end;
-end;
+		elseif I >= 2600 and I <= 2624 then
+			PosQ = CFrame.new(10778.875, -2087.72437, 9265.18359, 0.934615612, -9.33109447e-08, -0.355659455, 9.17655143e-08, 1, -2.12154276e-08, 0.355659455, -1.28090019e-08, 0.934615612)
+			if (getgenv().AutoFarm or _G.Level) and (PosQ.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
+				_tp(CFrame.new(-16269.7041, 25.2288494, 1373.65955, 0.997390985, 1.47309942e-09, -0.0721890926, -4.00651912e-09, 0.99999994, -2.51183763e-09, 0.0721890852, 5.75363091e-10, 0.997390926))
+				task.wait(2)
+				local args = {"TravelToSubmergedIsland"}
+				game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak"):InvokeServer(unpack(args))
+				return
+			end
+	
+			Mon = "Reef Bandit"
+			Qdata = 1
+			Qname = "SubmergedQuest1"
+			NameMon = "Reef Bandit"
+			PosM = CFrame.new(11019.1318, -2146.06812, 9342.3916, -0.719955266, -1.74275385e-08, 0.69402045, 5.76556367e-08, 1, 8.49211546e-08, -0.69402045, 1.01153624e-07, -0.719955266)
+		elseif I >= 2625 and I <= 2649 then
+			PosQ = CFrame.new(10778.875, -2087.72437, 9265.18359, 0.934615612, -9.33109447e-08, -0.355659455, 9.17655143e-08, 1, -2.12154276e-08, 0.355659455, -1.28090019e-08, 0.934615612)
+			if (getgenv().AutoFarm or _G.Level) and (PosQ.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
+				_tp(CFrame.new(-16269.7041, 25.2288494, 1373.65955, 0.997390985, 1.47309942e-09, -0.0721890926, -4.00651912e-09, 0.99999994, -2.51183763e-09, 0.0721890852, 5.75363091e-10, 0.997390926))
+				task.wait(2)
+				local args = {"TravelToSubmergedIsland"}
+				game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak"):InvokeServer(unpack(args))
+				return
+			end
+			-- Código para executar SOMENTE se já estiver na ilha
+			Mon = "Coral Pirate"
+			Qdata = 2
+			Qname = "SubmergedQuest1"
+			NameMon = "Coral Pirate"
+			PosM = CFrame.new(10808.6006, -2030.36145, 9364.2334, -0.775185347, -0.0359364748, 0.6307109, 0.0615428537, 0.989336014, 0.132010356, -0.628728986, 0.141148239, -0.764707148)
+		elseif I >= 2650 and I <= 2674 then
+			PosQ = CFrame.new(10880.6855, -2086.20044, 10032.624, -0.321384728, 9.87648434e-08, -0.946948707, 7.13271007e-08, 1, 8.00902953e-08, 0.946948707, -4.18033075e-08, -0.321384728)
+			if (getgenv().AutoFarm or _G.Level) and (PosQ.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
+				_tp(CFrame.new(-16269.7041, 25.2288494, 1373.65955, 0.997390985, 1.47309942e-09, -0.0721890926, -4.00651912e-09, 0.99999994, -2.51183763e-09, 0.0721890852, 5.75363091e-10, 0.997390926))
+				task.wait(2)
+				local args = {"TravelToSubmergedIsland"}
+				game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak"):InvokeServer(unpack(args))
+				return
+			end
+			-- Código para executar SOMENTE se já estiver na ilha
+			Mon = "Sea Chanter"
+			Qdata = 1
+			Qname = "SubmergedQuest2"
+			NameMon = "Sea Chanter"
+			PosM = CFrame.new(10671.2715, -2057.59155, 10047.2588, -0.846484065, -3.11045447e-08, 0.532414079, -5.55383117e-08, 1, -2.98785316e-08, -0.532414079, -5.48610757e-08, -0.846484065)
+		elseif I >= 2675 and I <= 2699 then
+			PosQ = CFrame.new(10880.6855, -2086.20044, 10032.624, -0.321384728, 9.87648434e-08, -0.946948707, 7.13271007e-08, 1, 8.00902953e-08, 0.946948707, -4.18033075e-08, -0.321384728)
+			if (getgenv().AutoFarm or _G.Level) and (PosQ.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
+				_tp(CFrame.new(-16269.7041, 25.2288494, 1373.65955, 0.997390985, 1.47309942e-09, -0.0721890926, -4.00651912e-09, 0.99999994, -2.51183763e-09, 0.0721890852, 5.75363091e-10, 0.997390926))
+				task.wait(2)
+				local args = {"TravelToSubmergedIsland"}
+				game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak"):InvokeServer(unpack(args))
+				return
+			end
+			-- Código para executar SOMENTE se já estiver na ilha
+			Mon = "Ocean Prophet"
+			Qdata = 2
+			Qname = "SubmergedQuest2"
+			NameMon = "Ocean Prophet"
+			PosM = CFrame.new(11008.5195, -2007.72839, 10223.0791, -0.688615739, 2.33523378e-09, -0.725126445, 2.99292546e-09, 1, 3.78221315e-10, 0.725126445, -1.90980032e-09, -0.688615739)
+		elseif I >= 2700 and I <= 2724 then
+			PosQ = CFrame.new(9640.08789, -1992.44507, 9613.65234, -0.957327187, 4.11991223e-08, 0.289006323, 1.5775445e-08, 1, -9.02985846e-08, -0.289006323, -8.18860855e-08, -0.957327187)
+			if (getgenv().AutoFarm or _G.Level) and (PosQ.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
+				_tp(CFrame.new(-16269.7041, 25.2288494, 1373.65955, 0.997390985, 1.47309942e-09, -0.0721890926, -4.00651912e-09, 0.99999994, -2.51183763e-09, 0.0721890852, 5.75363091e-10, 0.997390926))
+				task.wait(2)
+				local args = {"TravelToSubmergedIsland"}
+				game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak"):InvokeServer(unpack(args))
+				return
+			end
+		
+			Mon = "High Disciple"
+			Qdata = 1
+			Qname = "SubmergedQuest3"
+			NameMon = "High Disciple"
+			PosM = CFrame.new(9750.41602, -1966.93884, 9753.36035, -0.749824047, 5.57797613e-08, -0.661637306, 2.03500754e-08, 1, 6.1243199e-08, 0.661637306, 3.24572511e-08, -0.749824047)
+		elseif I >= 2725 then
+			PosQ = CFrame.new(9640.08789, -1992.44507, 9613.65234, -0.957327187, 4.11991223e-08, 0.289006323, 1.5775445e-08, 1, -9.02985846e-08, -0.289006323, -8.18860855e-08, -0.957327187)
+			if (getgenv().AutoFarm or _G.Level) and (PosQ.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
+				_tp(CFrame.new(-16269.7041, 25.2288494, 1373.65955, 0.997390985, 1.47309942e-09, -0.0721890926, -4.00651912e-09, 0.99999994, -2.51183763e-09, 0.0721890852, 5.75363091e-10, 0.997390926))
+				task.wait(2)
+				local args = {"TravelToSubmergedIsland"}
+				game:GetService("ReplicatedStorage").Modules.Net:FindFirstChild("RF/SubmarineWorkerSpeak"):InvokeServer(unpack(args))
+				return
+			end
+			-- Código para executar SOMENTE se já estiver na ilha
+			Mon = "Grand Devotee"
+			Qdata = 2
+			Qname = "SubmergedQuest3"
+			NameMon = "Grand Devotee"
+			PosM = CFrame.new(9611.70508, -1993.47119, 9882.68848, -0.591375351, 4.14332426e-08, -0.806396425, 4.73774868e-08, 1, 1.66361875e-08, 0.806396425, -2.83668058e-08, -0.591375351)
+		end
+	end
+end
 function Hop()
 	local module = (loadstring(game:HttpGet("https://raw.githubusercontent.com/Minh5160912/main-load/refs/heads/main/hop%20setting")))();
 	module:Teleport(game.PlaceId);
@@ -2893,18 +2983,7 @@ Tabs.MainTab:Toggle({
     Callback = function(Value)
         _G.Settings.Main["Auto Farm"] = Value
         
-        if not Value then -- KHI ÔNG GẠT NÚT TẮT
-            pcall(function()
-                local char = game.Players.LocalPlayer.Character
-                -- Xóa sạch các thứ gây kẹt nhân vật
-                if char:FindFirstChild("Root") then char.Root:Destroy() end
-                if char.HumanoidRootPart:FindFirstChild("BodyClip") then 
-                    char.HumanoidRootPart.BodyClip:Destroy() 
-                end
-                -- Ép nhân vật đứng im tại chỗ, không bay tiếp
-                char.HumanoidRootPart.CFrame = char.HumanoidRootPart.CFrame
-            end)
-        end
+       
     end
 })
 spawn(function()
@@ -10615,83 +10694,3 @@ spawn(function()
 end);
 
 
---------event
-local EggData = {
-    ["Eggcited Egg"] = 1, ["Thirsty Egg"] = 2, ["Rocket Egg"] = 3, ["Shockwave Egg"] = 4,
-    ["Fishy Egg"] = 5, ["Wooden Egg"] = 6, ["Eggspensive Egg"] = 7, ["Treasured Egg"] = 8,
-    ["Duelists Egg"] = 9, ["Mended Egg"] = 10, ["Kawaii Egg"] = 11, ["Falling Sky Egg"] = 12,
-    ["Eggsploration Egg"] = 13, ["Friendly Neighborhood Egg"] = 14, ["Firefly Egg"] = 15,
-    ["Pirate Egg"] = 16, ["Molten Egg"] = 17, ["Boss Hunt Egg"] = 18, ["Gacha Egg"] = 19,
-    ["Full Moon Egg"] = 20, ["Night Hunter Egg"] = 21, ["Sealed Showdown Egg"] = 22,
-    ["Golden Egg"] = 23, ["Celestial Egg"] = 24
-}
-local TweenService = game:GetService("TweenService")
-local CurrentTweenEgg = nil
-
-function TweenToEgg(pos)
-    if not pos then return end
-    local hrp = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-
-    local distance = (hrp.Position - pos.Position).Magnitude
-    local speed = 300 
-
-    local bv = hrp:FindFirstChild("EggVelocity") or Instance.new("BodyVelocity", hrp)
-    bv.Name = "EggVelocity"
-    bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-    bv.Velocity = Vector3.zero
-
-    if CurrentTweenEgg then CurrentTweenEgg:Cancel() end
-    CurrentTweenEgg = TweenService:Create(hrp, TweenInfo.new(distance / speed, Enum.EasingStyle.Linear), {CFrame = pos})
-    CurrentTweenEgg:Play()
-end
-
-_G.AutoCollectEggs = false
-function StartEggFarm()
-    task.spawn(function()
-        while _G.AutoCollectEggs do
-            task.wait(0.5)
-            pcall(function()
-                for _, v in pairs(workspace:GetDescendants()) do
-                    if not _G.AutoCollectEggs then break end
-                    
-                    -- Kiểm tra: Nếu tên trùng HOẶC có thuộc tính ID trùng với file
-                    local eggID = v:GetAttribute("Id") or (v:FindFirstChild("Id") and v.Id.Value)
-                    
-                    if EggData[v.Name] or (eggID and eggID >= 1 and eggID <= 24) then
-                        local targetCF = v:IsA("Model") and v:GetModelCFrame() or v:IsA("BasePart") and v.CFrame
-                        
-                        if targetCF then
-                            TweenToEgg(targetCF)
-                            
-                            -- Vòng lặp đợi nhặt xong (E)
-                            local s = tick()
-                            repeat 
-                                task.wait()
-                                local prompt = v:FindFirstChildOfClass("ProximityPrompt") or v:FindFirstChildHierarchy("ProximityPrompt")
-                                if prompt then fireproximityprompt(prompt) end
-                            until not v.Parent or not _G.AutoCollectEggs or (tick() - s > 5)
-                        end
-                    end
-                end
-            end)
-        end
-    end)
-end
-Tabs.MainTab:Toggle({
-    Title = "Auto Collect Eggs (ID 1-24)",
-    Callback = function(State)
-        _G.AutoCollectEggs = State
-        if State then
-            StartEggFarm()
-        else
-            if CurrentTweenEgg then CurrentTweenEgg:Cancel() end
-            local hrp = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                local bv = hrp:FindFirstChild("EggVelocity")
-                if bv then bv:Destroy() end
-                hrp.Velocity = Vector3.zero
-            end
-        end
-    end
-})
