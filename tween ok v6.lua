@@ -4696,36 +4696,6 @@ Useskills = function(I, e)
 local J = getrawmetatable(game);
 local i = J.__namecall;
 setreadonly(J, false);
-getInfinity_Ability = function(I, e)
-    if not Root then
-        return;
-    end;
-    if I == "Soru" and e then
-        for I, K in next, getgc() do
-            if plr.Character.Soru then
-                if typeof(K) == "function" and (getfenv(K)).script == plr.Character.Soru then
-                    for I, K in next, getupvalues(K) do
-                        if typeof(K) == "table" then
-                            repeat
-                                wait(Sec);
-                                K.LastUse = 0;
-                            until not e or plr.Character.Humanoid.Health <= 0;
-                        end;
-                    end;
-                end;
-            end;
-        end;
-    elseif I == "Energy" and e then
-        plr.Character.Energy.Changed:connect(function()
-            if e then
-                plr.Character.Energy.Value = Energy;
-            end;
-        end);
-    elseif I == "Observation" and e then
-        local I = plr.VisionRadius;
-        I.Value = math.huge;
-    end;
-end;
 
 EliteHunterSection = Tabs.OthersTab:Section({
 	Title = "Elite Hunter",
@@ -7327,95 +7297,105 @@ end);
 
 -- Toggle vô hạn Mink V3
 -- 1. ĐỊNH NGHĨA HÀM TRƯỚC (Giữ nguyên từ file gốc của bạn)
-_G.SaveData = _G.SaveData or {}
+local plr = game.Players.LocalPlayer
 
-function LoadSettings()
-    -- ... code load file của bạn ...
-end
+-- Vòng lặp xử lý logic ngầm (Background Logic)
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        pcall(function()
+            local char = plr.Character
+            if char and char:FindFirstChild("Humanoid") and char.Humanoid.Health > 0 then
+                -- Vô hạn Energy (Sửa lại tên key cho chuẩn bảng Settings của bạn)
+                if _G.Settings.LocalPlayer["Infinite Energy"] then
+                    local energy = char:FindFirstChild("Energy")
+                    if energy then energy.Value = energy.MaxValue end
+                end
+                
+                -- Vô hạn Observation
+                if _G.Settings.LocalPlayer["Infinite Ability"] then
+                    if plr:FindFirstChild("VisionRadius") then
+                        plr.VisionRadius.Value = 999999
+                    end
+                end
+                
+                -- Vô hạn Soru
+                if _G.Settings.LocalPlayer["Infinite Soru"] and char:FindFirstChild("Soru") then
+                    for _, v in pairs(getgc()) do
+                        if type(v) == "function" and getfenv(v).script == char.Soru then
+                            for _, up in pairs(getupvalues(v)) do
+                                if type(up) == "table" and up.LastUse then
+                                    up.LastUse = 0
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
 
-function GetSetting(name, default)
-    return _G.SaveData[name] ~= nil and _G.SaveData[name] or default
-end
-
--- 2. GỌI LOAD SETTINGS ĐỂ ĐỔ DỮ LIỆU VÀO _G.SaveData
-LoadSettings()
-
--- 3. SAU ĐÓ MỚI ĐƯỢC KHAI BÁO BẢNG LocalPlayer
-LocalPlayer = {
-    ["Infinite Energy"] = GetSetting("InfEnergy_Save", false),
-    ["Infinite Ability"] = GetSetting("InfAbility_Save", true),
-    ["Infinite Geppo"] = GetSetting("InfGeppo_Save", false),
-    ["Infinite Soru"] = GetSetting("InfSoru_Save", false),
-    ["Dodge No Cooldown"] = GetSetting("DodgeNoCD_Save", false),
-}
 -- Toggle vô hạn Mink V3
 Tabs.LocalPlayerTab:Toggle({
     Title = "Instance Mink V3 [ INF ]",
-    Value = GetSetting("InfAblities_Save", false),
-    Callback = function(value)
-        _G.InfAblities = value
-        _G.SaveData["InfAblities_Save"] = value
-        SaveSettings()
+    Default = _G.Settings.LocalPlayer["Active Race V3"], 
+    Callback = function(Value)
+        _G.Settings.LocalPlayer["Active Race V3"] = Value
+        if SaveSettings then SaveSettings() end -- Kiểm tra nếu hàm tồn tại thì mới gọi
         
-        task.spawn(function()
-            while _G.InfAblities do
-                pcall(function()
-                    local char = game.Players.LocalPlayer.Character
-                    if char and char:FindFirstChild("HumanoidRootPart") then
-                        if not char.HumanoidRootPart:FindFirstChild("Agility") then
-                            local agility = game:GetService("ReplicatedStorage").FX.Agility:Clone()
-                            agility.Name = "Agility"
-                            agility.Parent = char.HumanoidRootPart
+        if Value then
+            task.spawn(function()
+                while _G.Settings.LocalPlayer["Active Race V3"] do
+                    pcall(function()
+                        local char = plr.Character
+                        if char and char:FindFirstChild("HumanoidRootPart") then
+                            if not char.HumanoidRootPart:FindFirstChild("Agility") then
+                                local agility = game:GetService("ReplicatedStorage").FX.Agility:Clone()
+                                agility.Name = "Agility"
+                                agility.Parent = char.HumanoidRootPart
+                            end
                         end
-                    end
-                end)
-                task.wait(0.2)
-            end
-            
-            -- Cleanup khi tắt
-            pcall(function()
-                local char = game.Players.LocalPlayer.Character
-                if char and char.HumanoidRootPart:FindFirstChild("Agility") then
+                    end)
+                    task.wait(0.5)
+                end
+                -- Cleanup khi tắt
+                local char = plr.Character
+                if char and char:FindFirstChild("HumanoidRootPart") and char.HumanoidRootPart:FindFirstChild("Agility") then
                     char.HumanoidRootPart.Agility:Destroy()
                 end
             end)
-        end)
+        end
     end
 })
 
 -- Toggle vô hạn năng lượng
 Tabs.LocalPlayerTab:Toggle({
-    Title = "Instance Energy [ INF ]",
-    Value = GetSetting("infEnergy_Save", false),
+    Title = "Infinite Energy",
+    Default = _G.Settings.LocalPlayer["Infinite Energy"],
     Callback = function(value)
-        _G.infEnergy = value
-        _G.SaveData["infEnergy_Save"] = value
-        SaveSettings()
-        getInfinity_Ability("Energy", _G.infEnergy)
+        _G.Settings.LocalPlayer["Infinite Energy"] = value
+        if SaveSettings then SaveSettings() end
     end
 })
 
 -- Toggle vô hạn Soru
 Tabs.LocalPlayerTab:Toggle({
     Title = "Instance Soru [ INF ]",
-    Value = GetSetting("InfSoru_Save", false),
+    Default = _G.Settings.LocalPlayer["Infinite Soru"],
     Callback = function(value)
-        _G.InfSoru = value
-        _G.SaveData["InfSoru_Save"] = value
-        SaveSettings()
-        getInfinity_Ability("Soru", _G.InfSoru)
+       _G.Settings.LocalPlayer["Infinite Soru"] = value
+       if SaveSettings then SaveSettings() end
     end
 })
 
 -- Toggle vô hạn tầm nhìn Observation
 Tabs.LocalPlayerTab:Toggle({
     Title = "Instance Observation Range [ INF ]",
-    Value = GetSetting("InfiniteObRange_Save", false),
+    Default = _G.Settings.LocalPlayer["Infinite Ability"],
     Callback = function(value)
-        _G.InfiniteObRange = value
-        _G.SaveData["InfiniteObRange_Save"] = value
-        SaveSettings()
-        getInfinity_Ability("Observation", _G.InfiniteObRange)
+        _G.Settings.LocalPlayer["Infinite Ability"] = value
+        if SaveSettings then SaveSettings() end
     end
 })
 -- Toggle vô hạn tầm nhìn Observation
