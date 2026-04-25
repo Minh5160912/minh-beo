@@ -1959,7 +1959,92 @@ function TweenBoat(pos)
 	end;
 	return StopTweenBoat;
 end;
-
+local S = _G.Settings
+local tweenlist = (
+    -- Main
+    S.Main["Auto Farm"] or S.Main["Auto Fast Farm"] or S.Main["Auto Farm Fruit Mastery"] or 
+    S.Main["Auto Farm Gun Mastery"] or S.Main["Auto Farm Sword Mastery"] or 
+    S.Main["Auto Summon Tyrant Of The Skies"] or S.Main["Auto Kill Tyrant Of The Skies"] or 
+    S.Main["Auto Farm Mon"] or S.Main["Auto Farm Boss"] or S.Main["Auto Farm All Boss"] or
+    
+    -- Farm
+    S.Farm["Auto Elite Hunter"] or S.Farm["Auto Elite Hunter Hop"] or S.Farm["Auto Farm Bone"] or 
+    S.Farm["Auto Random Surprise"] or S.Farm["Auto Pirate Raid"] or S.Farm["Auto Farm Chest Tween"] or 
+    S.Farm["Auto Chest Hop"] or S.Farm["Auto Farm Chest Mirage"] or S.Farm["Auto Farm Katakuri"] or 
+    S.Farm["Auto Spawn Cake Prince"] or S.Farm["Auto Kill Cake Prince"] or 
+    S.Farm["Auto Kill Dough King"] or S.Farm["Auto Farm Material"] or
+            
+    -- Items (Đống này nhiều nhất nè)
+    S.Items["Auto Second Sea"] or S.Items["Auto Third Sea"] or S.Items["Auto Farm Factory"] or 
+    S.Items["Auto Super Human"] or S.Items["Auto Death Step"] or S.Items["Auto Fishman Karate"] or 
+    S.Items["Auto Electric Claw"] or S.Items["Auto Dragon Talon"] or S.Items["Auto God Human"] or 
+    S.Items["Auto Saber"] or S.Items["Auto Buddy Sword"] or S.Items["Auto Soul Guitar"] or 
+    S.Items["Auto Rengoku"] or S.Items["Auto Hallow Scythe"] or S.Items["Auto Warden Sword"] or 
+    S.Items["Auto Cursed Dual Katana"] or S.Items["Auto Yama"] or S.Items["Auto Tushita"] or 
+    S.Items["Auto Canvander"] or S.Items["Auto Dragon Trident"] or S.Items["Auto Pole"] or 
+    S.Items["Auto Shawk Saw"] or S.Items["Auto Greybeard"] or S.Items["Auto Swan Glasses"] or 
+    S.Items["Auto Arena Trainer"] or S.Items["Auto Dark Dagger"] or S.Items["Auto Press Haki Button"] or 
+	S.Items["Auto Rainbow Haki"] or S.Items["Auto Holy Torch"] or S.Items["Auto Bartilo Quest"] or
+            
+    -- DragonDojo & SeaEvent
+    S.DragonDojo["Auto Farm Blaze Ember"] or S.DragonDojo["Auto Collect Blaze Ember"] or
+    S.SeaEvent["Auto Farm Shark"] or S.SeaEvent["Auto Farm Piranha"] or 
+    S.SeaEvent["Auto Farm Fish Crew Member"] or S.SeaEvent["Auto Farm Ghost Ship"] or 
+    S.SeaEvent["Auto Farm Pirate Brigade"] or S.SeaEvent["Auto Farm Pirate Grand Brigade"] or 
+    S.SeaEvent["Auto Farm Terrorshark"] or S.SeaEvent["Auto Farm Seabeasts"] or
+            
+   -- SeaStack
+    S.SeaStack["Tween To Frozen Dimension"] or S.SeaStack["Summon Frozen Dimension"] or 
+    S.SeaStack["Tween To Kitsune Island"] or S.SeaStack["Summon Kitsune Island"] or 
+    S.SeaEvent["Auto Farm Fish Crew Member"] or S.SeaEvent["Auto Farm Ghost Ship"] or             
+    S.SeaStack["Tween To Mirage Island"] or S.SeaStack["Teleport To Advanced Fruit Dealer"] or 
+    S.SeaStack["Auto Attack Seabeasts"] or S.SeaStack["Summon Prehistoric Island"] or 
+	S.SeaStack["Tween To Prehistoric Island"] or S.SeaStack["Auto Kill Lava Golem"] or
+            
+            -- Race & Combat & Raid & Fruit
+	S.Race["Auto Race V2"] or S.Race["Auto Race V3"] or S.Race["Teleport To Place"] or 
+    S.Race["Tween To Highest Mirage"] or S.Race["Find Blue Gear"] or S.Race["Auto Train"] or 
+    S.Race["Auto Kill Player After Trial"] or S.Race["Auto Trial"] or
+    S.Combat["Auto Kill Player Quest"] or S.Raid["Auto Raid"] or S.Raid["Law Raid"] or
+    S.Fruit["Tween To Fruit"]
+)
+local attckfuntion = (
+    -- Main
+    S.Main["Auto Farm"] or S.Main["Auto Fast Farm"] or S.Main["Auto Farm Fruit Mastery"] or 
+    S.Main["Auto Farm Gun Mastery"] or S.Main["Auto Farm Sword Mastery"] or 
+    S.Main["Auto Summon Tyrant Of The Skies"] or S.Main["Auto Kill Tyrant Of The Skies"] or 
+    S.Main["Auto Farm Mon"] or S.Main["Auto Farm Boss"] or S.Main["Auto Farm All Boss"] or
+    -- Farm
+    S.Farm["Auto Elite Hunter"] or S.Farm["Auto Elite Hunter v2"] or S.Farm["Auto Elite Hunter Hop"] or 
+    S.Farm["Auto Farm Bone"] or S.Farm["Auto Pirate Raid"] or S.Farm["Auto Farm Chest Tween"] or 
+    S.Farm["Auto Chest Hop"] or S.Farm["Auto Farm Chest Mirage"] or S.Farm["Auto Farm Katakuri"] or 
+    S.Farm["Auto Spawn Cake Prince"] or S.Farm["Auto Kill Cake Prince"] or 
+    S.Farm["Auto Kill Dough King"] or S.Farm["Auto Farm Material"] or
+    -- Items
+    S.Items["Auto Second Sea"] or S.Items["Auto Third Sea"] or S.Items["Auto Farm Factory"] or 
+    S.Items["Auto Super Human"] or S.Items["Auto Death Step"] or S.Items["Auto Fishman Karate"] or 
+    S.Items["Auto Electric Claw"] or S.Items["Auto Dragon Talon"] or S.Items["Auto God Human"] or 
+    S.Items["Auto Saber"] or S.Items["Auto Buddy Sword"] or S.Items["Auto Soul Guitar"] or 
+    S.Items["Auto Rengoku"] or S.Items["Auto Hallow Scythe"] or S.Items["Auto Warden Sword"] or 
+    S.Items["Auto Cursed Dual Katana"] or S.Items["Auto Yama"] or S.Items["Auto Tushita"] or 
+    S.Items["Auto Canvander"] or S.Items["Auto Dragon Trident"] or S.Items["Auto Pole"] or 
+    S.Items["Auto Shawk Saw"] or S.Items["Auto Greybeard"] or S.Items["Auto Swan Glasses"] or 
+    S.Items["Auto Arena Trainer"] or S.Items["Auto Dark Dagger"] or S.Items["Auto Rainbow Haki"] or 
+    S.Items["Auto Holy Torch"] or S.Items["Auto Bartilo Quest"] or
+    -- DragonDojo & SeaEvent
+    S.DragonDojo["Auto Farm Blaze Ember"] or S.DragonDojo["Auto Collect Blaze Ember"] or
+    S.SeaEvent["Auto Farm Shark"] or S.SeaEvent["Auto Farm Piranha"] or 
+    S.SeaEvent["Auto Farm Fish Crew Member"] or S.SeaEvent["Auto Farm Ghost Ship"] or 
+	S.SeaEvent["Auto Farm Pirate Brigade"] or S.SeaEvent["Auto Farm Pirate Grand Brigade"] or 
+    S.SeaEvent["Auto Farm Terrorshark"] or S.SeaEvent["Auto Farm Seabeasts"] or
+    -- SeaStack
+	S.SeaStack["Auto Attack Seabeasts"] or S.SeaStack["Auto Kill Lava Golem"] or
+    -- Race & Combat & Raid & Fruit
+    S.Race["Auto Race V2"] or S.Race["Auto Race V3"] or S.Race["Teleport To Place"] or 
+    S.Race["Auto Train"] or S.Race["Auto Kill Player After Trial"] or S.Race["Auto Trial"] or
+    S.Combat["Auto Kill Player Quest"] or S.Raid["Auto Raid"] or S.Raid["Law Raid"] or
+    S.Fruit["Tween To Fruit"] or _G.FastAttack
+) 
 local TweenService = game:GetService("TweenService")
 local CurrentTween = nil
 
@@ -1982,60 +2067,9 @@ function TweenPlayer(pos)
     end
 
     -- 2. HÀM KIỂM TRA TẤT CẢ ĐIỀU KIỆN (Tất cả những gì bạn vừa đưa)
-    local function CheckAllSettings()
-        local S = _G.Settings
-        return (
-            -- Main
-            S.Main["Auto Farm"] or S.Main["Auto Fast Farm"] or S.Main["Auto Farm Fruit Mastery"] or 
-            S.Main["Auto Farm Gun Mastery"] or S.Main["Auto Farm Sword Mastery"] or 
-            S.Main["Auto Summon Tyrant Of The Skies"] or S.Main["Auto Kill Tyrant Of The Skies"] or 
-            S.Main["Auto Farm Mon"] or S.Main["Auto Farm Boss"] or S.Main["Auto Farm All Boss"] or
-            
-            -- Farm
-            S.Farm["Auto Elite Hunter"] or S.Farm["Auto Elite Hunter Hop"] or S.Farm["Auto Farm Bone"] or 
-            S.Farm["Auto Random Surprise"] or S.Farm["Auto Pirate Raid"] or S.Farm["Auto Farm Chest Tween"] or 
-            S.Farm["Auto Chest Hop"] or S.Farm["Auto Farm Chest Mirage"] or S.Farm["Auto Farm Katakuri"] or 
-            S.Farm["Auto Spawn Cake Prince"] or S.Farm["Auto Kill Cake Prince"] or 
-            S.Farm["Auto Kill Dough King"] or S.Farm["Auto Farm Material"] or
-            
-            -- Items (Đống này nhiều nhất nè)
-            S.Items["Auto Second Sea"] or S.Items["Auto Third Sea"] or S.Items["Auto Farm Factory"] or 
-            S.Items["Auto Super Human"] or S.Items["Auto Death Step"] or S.Items["Auto Fishman Karate"] or 
-            S.Items["Auto Electric Claw"] or S.Items["Auto Dragon Talon"] or S.Items["Auto God Human"] or 
-            S.Items["Auto Saber"] or S.Items["Auto Buddy Sword"] or S.Items["Auto Soul Guitar"] or 
-            S.Items["Auto Rengoku"] or S.Items["Auto Hallow Scythe"] or S.Items["Auto Warden Sword"] or 
-            S.Items["Auto Cursed Dual Katana"] or S.Items["Auto Yama"] or S.Items["Auto Tushita"] or 
-            S.Items["Auto Canvander"] or S.Items["Auto Dragon Trident"] or S.Items["Auto Pole"] or 
-            S.Items["Auto Shawk Saw"] or S.Items["Auto Greybeard"] or S.Items["Auto Swan Glasses"] or 
-            S.Items["Auto Arena Trainer"] or S.Items["Auto Dark Dagger"] or S.Items["Auto Press Haki Button"] or 
-            S.Items["Auto Rainbow Haki"] or S.Items["Auto Holy Torch"] or S.Items["Auto Bartilo Quest"] or
-            
-            -- DragonDojo & SeaEvent
-            S.DragonDojo["Auto Farm Blaze Ember"] or S.DragonDojo["Auto Collect Blaze Ember"] or
-            S.SeaEvent["Auto Farm Shark"] or S.SeaEvent["Auto Farm Piranha"] or 
-            S.SeaEvent["Auto Farm Fish Crew Member"] or S.SeaEvent["Auto Farm Ghost Ship"] or 
-            S.SeaEvent["Auto Farm Pirate Brigade"] or S.SeaEvent["Auto Farm Pirate Grand Brigade"] or 
-            S.SeaEvent["Auto Farm Terrorshark"] or S.SeaEvent["Auto Farm Seabeasts"] or
-            
-            -- SeaStack
-            S.SeaStack["Tween To Frozen Dimension"] or S.SeaStack["Summon Frozen Dimension"] or 
-            S.SeaStack["Tween To Kitsune Island"] or S.SeaStack["Summon Kitsune Island"] or 
-            S.SeaStack["Auto Collect Azure Ember"] or S.SeaStack["Auto Trade Azure Ember"] or 
-            S.SeaStack["Tween To Mirage Island"] or S.SeaStack["Teleport To Advanced Fruit Dealer"] or 
-            S.SeaStack["Auto Attack Seabeasts"] or S.SeaStack["Summon Prehistoric Island"] or 
-            S.SeaStack["Tween To Prehistoric Island"] or S.SeaStack["Auto Kill Lava Golem"] or
-            
-            -- Race & Combat & Raid & Fruit
-            S.Race["Auto Race V2"] or S.Race["Auto Race V3"] or S.Race["Teleport To Place"] or 
-            S.Race["Tween To Highest Mirage"] or S.Race["Find Blue Gear"] or S.Race["Auto Train"] or 
-            S.Race["Auto Kill Player After Trial"] or S.Race["Auto Trial"] or
-            S.Combat["Auto Kill Player Quest"] or S.Raid["Auto Raid"] or S.Raid["Law Raid"] or
-            S.Fruit["Tween To Fruit"]
-        )
-    end
-
+    
     -- 3. ĐIỀU KIỆN DỪNG LẬP TỨC
-    if not CheckAllSettings() then
+    if not tweenlist then
         if hrp:FindFirstChild("FarmVelocity") then hrp.FarmVelocity:Destroy() end
         return 
     end
@@ -2115,6 +2149,7 @@ spawn(function()
 		end);
 	end);
 end);
+
 local env = (getgenv or getrenv or getfenv)();
 local rs = game:GetService("ReplicatedStorage");
 local players = game:GetService("Players");
@@ -2214,43 +2249,7 @@ end
 
 local function Attack()
     
-	if not (
-        -- Main
-        S.Main["Auto Farm"] or S.Main["Auto Fast Farm"] or S.Main["Auto Farm Fruit Mastery"] or 
-        S.Main["Auto Farm Gun Mastery"] or S.Main["Auto Farm Sword Mastery"] or 
-        S.Main["Auto Summon Tyrant Of The Skies"] or S.Main["Auto Kill Tyrant Of The Skies"] or 
-        S.Main["Auto Farm Mon"] or S.Main["Auto Farm Boss"] or S.Main["Auto Farm All Boss"] or
-        -- Farm
-        S.Farm["Auto Elite Hunter"] or S.Farm["Auto Elite Hunter v2"] or S.Farm["Auto Elite Hunter Hop"] or 
-        S.Farm["Auto Farm Bone"] or S.Farm["Auto Pirate Raid"] or S.Farm["Auto Farm Chest Tween"] or 
-        S.Farm["Auto Chest Hop"] or S.Farm["Auto Farm Chest Mirage"] or S.Farm["Auto Farm Katakuri"] or 
-        S.Farm["Auto Spawn Cake Prince"] or S.Farm["Auto Kill Cake Prince"] or 
-        S.Farm["Auto Kill Dough King"] or S.Farm["Auto Farm Material"] or
-        -- Items
-        S.Items["Auto Second Sea"] or S.Items["Auto Third Sea"] or S.Items["Auto Farm Factory"] or 
-        S.Items["Auto Super Human"] or S.Items["Auto Death Step"] or S.Items["Auto Fishman Karate"] or 
-        S.Items["Auto Electric Claw"] or S.Items["Auto Dragon Talon"] or S.Items["Auto God Human"] or 
-        S.Items["Auto Saber"] or S.Items["Auto Buddy Sword"] or S.Items["Auto Soul Guitar"] or 
-        S.Items["Auto Rengoku"] or S.Items["Auto Hallow Scythe"] or S.Items["Auto Warden Sword"] or 
-        S.Items["Auto Cursed Dual Katana"] or S.Items["Auto Yama"] or S.Items["Auto Tushita"] or 
-        S.Items["Auto Canvander"] or S.Items["Auto Dragon Trident"] or S.Items["Auto Pole"] or 
-        S.Items["Auto Shawk Saw"] or S.Items["Auto Greybeard"] or S.Items["Auto Swan Glasses"] or 
-        S.Items["Auto Arena Trainer"] or S.Items["Auto Dark Dagger"] or S.Items["Auto Rainbow Haki"] or 
-        S.Items["Auto Holy Torch"] or S.Items["Auto Bartilo Quest"] or
-        -- DragonDojo & SeaEvent
-        S.DragonDojo["Auto Farm Blaze Ember"] or S.DragonDojo["Auto Collect Blaze Ember"] or
-        S.SeaEvent["Auto Farm Shark"] or S.SeaEvent["Auto Farm Piranha"] or 
-        S.SeaEvent["Auto Farm Fish Crew Member"] or S.SeaEvent["Auto Farm Ghost Ship"] or 
-        S.SeaEvent["Auto Farm Pirate Brigade"] or S.SeaEvent["Auto Farm Pirate Grand Brigade"] or 
-        S.SeaEvent["Auto Farm Terrorshark"] or S.SeaEvent["Auto Farm Seabeasts"] or
-        -- SeaStack
-        S.SeaStack["Auto Attack Seabeasts"] or S.SeaStack["Auto Kill Lava Golem"] or
-        -- Race & Combat & Raid & Fruit
-        S.Race["Auto Race V2"] or S.Race["Auto Race V3"] or S.Race["Teleport To Place"] or 
-        S.Race["Auto Train"] or S.Race["Auto Kill Player After Trial"] or S.Race["Auto Trial"] or
-        S.Combat["Auto Kill Player Quest"] or S.Raid["Auto Raid"] or S.Raid["Law Raid"] or
-        S.Fruit["Tween To Fruit"] or _G.FastAttack
-    ) then return end
+	if not attckfuntion then return end
     
     local character = game.Players.LocalPlayer.Character
     if not character or not character:FindFirstChild("Humanoid") or character.Humanoid.Health <= 0 then return end
