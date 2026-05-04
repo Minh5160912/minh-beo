@@ -1,4 +1,4 @@
----v5
+---v6
 print("hello what are looking")
 local executor = (getexecutorname and getexecutorname()) or (identifyexecutor and identifyexecutor())
 if executor then
@@ -34,6 +34,59 @@ local Window = WindUI:CreateWindow({
     Theme = "Dark",
     SideBarWidth = 190,
     HasOutline = false,
+	User = {
+        Enabled = true,
+        Anonymous = false,
+        Callback = function()
+            local lp = game:GetService("Players").LocalPlayer
+            local char = lp.Character
+            local data = lp.Data
+            
+            -- Lấy các thông số cơ bản
+            local level = data.Level.Value
+            local beli = data.Beli.Value
+            local fruit = data.DevilFruit.Value
+            local race = data.Race.Value
+            local bounty = lp.leaderstats["Bounty/Honor"].Value
+
+            -- Mặc định nếu chưa có nhân vật
+            local hp, maxHp = 0, 0
+            local en, maxEn = 0, 0
+
+            -- Kiểm tra nhân vật để lấy Máu và Năng lượng
+            if char and char:FindFirstChild("Humanoid") and char:FindFirstChild("Energy") then
+                hp = math.floor(char.Humanoid.Health)
+                maxHp = math.floor(char.Humanoid.MaxHealth)
+                en = math.floor(char.Energy.Value)
+                maxEn = math.floor(char.Energy.MaxValue)
+            end
+
+            WindUI:Popup({
+                Title = "Bảng Trạng Thái",
+                Icon = "user",
+                Content = string.format(
+                    "⭐ Level: %s\n❤️ Health: %s / %s\n⚡ Energy: %s / %s\n💰 Beli: %s\n🍎 Fruit: %s\n🧬 Race: %s\n☠️ Bounty: %s",
+                    level, hp, maxHp, en, maxEn, beli, fruit, race, bounty
+                ),
+                Buttons = {
+                    {
+                        Title = "Đóng",
+                        Icon = "x",
+                        Callback = function() end,
+                        Variant = "Secondary",
+                    },
+                    {
+                        Title = "Làm mới",
+                        Icon = "refresh-cw",
+                        Callback = function() 
+                            Window:GetUser().Callback() 
+                        end,
+                        Variant = "Primary",
+                    }
+                }
+            })
+        end,
+    }
 });
 Window:EditOpenButton({
     Title = "Minh BELL BF",
@@ -48,8 +101,8 @@ Window:EditOpenButton({
     Color = ColorSequence.new( -- gradient
         Color3.fromHex("#30FF6A"), 
         Color3.fromHex("#e7ff2f")
-    )
-
+    ),
+	
 }); 
 
 
@@ -209,6 +262,7 @@ _G.Settings = {
 		["SpinAngle"] = 0,
 		["Spin Position"] = false,
 		["Farm Distance"] = 35,
+		["Bypass TP"] = false,
 		["Player Tween Speed"] = 350,
 		["Bring Mob"] = true,
 		["Bring Mob Mode"] = "Normal",
@@ -2070,59 +2124,107 @@ local attckfuntion = (
     S.Combat["Auto Kill Player Quest"] or S.Raid["Auto Raid"] or S.Raid["Law Raid"] or
     S.Fruit["Tween To Fruit"] or _G.FastAttack
 ) 
+-- ==========================================
+-- SERVICES
+-- ==========================================
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+
+local Player = Players.LocalPlayer
 local CurrentTween = nil
 
+-- ==========================================
+-- HÀM HỖ TRỢ BYPASS (GET ISLAND)
+-- ==========================================
+local function GetIsLand(...)
+    local RealtargetPos = {...}
+    local targetPos = RealtargetPos[1]
+    local RealTarget
+    if type(targetPos) == "vector" then
+        RealTarget = targetPos
+    elseif type(targetPos) == "userdata" then
+        RealTarget = targetPos.Position
+    elseif type(targetPos) == "number" then
+        RealTarget = CFrame.new(unpack(RealtargetPos)).p
+    end
+
+    local ReturnValue
+    local CheckInOut = math.huge
+    if Player.Team then
+        local spawns = Workspace._WorldOrigin.PlayerSpawns:FindFirstChild(tostring(Player.Team))
+        if spawns then
+            for _, v in pairs(spawns:GetChildren()) do
+                local ReMagnitude = (RealTarget - v:GetModelCFrame().p).Magnitude
+                if ReMagnitude < CheckInOut then
+                    CheckInOut = ReMagnitude
+                    ReturnValue = v.Name
+                end
+            end
+        end
+    end
+    return ReturnValue
+end
+
+-- ==========================================
+-- HÀM TWEEN PLAYER (TP 2) + BYPASS TP
+-- ==========================================
 function TweenPlayer(pos)
     if not pos then return end
     
-    local player = game.Players.LocalPlayer
-    local char = player.Character or player.CharacterAdded:Wait()
+    local char = Player.Character or Player.CharacterAdded:Wait()
     local hrp = char:WaitForChild("HumanoidRootPart")
+    local hum = char:WaitForChild("Humanoid")
 
-    -- TÍNH TOÁN KHOẢNG CÁCH & TỐC ĐỘ
-    local distance = (hrp.Position - (typeof(pos) == "CFrame" and pos.p or pos.Position)).Magnitude
-    local speed = _G.Settings.Setting and _G.Settings.Setting["Player Tween Speed"] or 300
     local targetCFrame = typeof(pos) == "CFrame" and pos or CFrame.new(pos)
+    local distance = (hrp.Position - targetCFrame.p).Magnitude
+    
+    -- Lấy speed từ Settings sẵn có của ông
+    local speed = (_G.Settings.Setting and _G.Settings.Setting["Player Tween Speed"]) or 300
 
-    -- 1. DỌN DẸP TWEEN CŨ
     if CurrentTween then 
         CurrentTween:Cancel() 
         CurrentTween = nil 
     end
 
-    -- 2. HÀM KIỂM TRA TẤT CẢ ĐIỀU KIỆN (Tất cả những gì bạn vừa đưa)
-    
-    -- 3. ĐIỀU KIỆN DỪNG LẬP TỨC
-    if not tweenlist then
-        if hrp:FindFirstChild("FarmVelocity") then hrp.FarmVelocity:Destroy() end
-        return 
+    -- LOGIC BYPASS TP (Chỉ chạy khi bật Toggle Bypass và khoảng cách > 3000)[cite: 2, 3]
+    if _G.Settings.Configs and _G.Settings.Configs["Bypass TP"] and distance > 3000 then
+        local island = GetIsLand(targetCFrame)
+        local spawnValue = Player.Data:FindFirstChild("SpawnPoint") and Player.Data.SpawnPoint.Value
+        
+        if spawnValue == tostring(island) then
+            ReplicatedStorage.Remotes.CommF_:InvokeServer("TeleportToSpawn")
+            task.wait(0.2)
+            return -- Đã dịch chuyển xong, không cần Tween nữa
+        end
     end
 
-    -- 4. PHANH GẦN MỤC TIÊU
+    -- Dừng Tween nếu đã gần mục tiêu
     if distance < 15 then
         hrp.CFrame = targetCFrame
         return 
     end
 
-    -- 5. LỰC NÂNG (BODY VELOCITY)
+    -- Tạo lực nâng chống rơi (BodyVelocity)
     local bv = hrp:FindFirstChild("FarmVelocity") or Instance.new("BodyVelocity")
     bv.Name = "FarmVelocity"
     bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
     bv.Velocity = Vector3.zero
     bv.Parent = hrp
 
-    -- 6. CHẠY TWEEN VÀ NOCLIP
     pcall(function()
         local tweenInfo = TweenInfo.new(distance / speed, Enum.EasingStyle.Linear)
-        CurrentTween = game:GetService("TweenService"):Create(hrp, tweenInfo, {CFrame = targetCFrame})
+        CurrentTween = TweenService:Create(hrp, tweenInfo, {CFrame = targetCFrame})
         
         local isTweening = true
         
         task.spawn(function()
-            while isTweening and CheckAllSettings() do
+            while isTweening do
+                if hum.Health <= 0 then break end
                 pcall(function()
-                    -- Noclip triệt để cho toàn bộ char
+                    -- Noclip triệt để xuyên vật thể khi đang di chuyển
                     for _, v in pairs(char:GetDescendants()) do
                         if v:IsA("BasePart") then
                             v.CanCollide = false
@@ -2132,9 +2234,9 @@ function TweenPlayer(pos)
                 task.wait()
             end
             
-            -- Dọn dẹp sau khi xong hoặc tắt farm
+            -- Dọn dẹp noclip và lực nâng sau khi xong
+            if hrp:FindFirstChild("FarmVelocity") then hrp.FarmVelocity:Destroy() end
             pcall(function()
-                if hrp:FindFirstChild("FarmVelocity") then hrp.FarmVelocity:Destroy() end
                 for _, v in pairs(char:GetDescendants()) do
                     if v:IsA("BasePart") then
                         v.CanCollide = true
@@ -2150,6 +2252,11 @@ function TweenPlayer(pos)
         
         CurrentTween:Play()
     end)
+end
+
+-- Chuyển hàm to cũ sang hệ thống TP 2 mới
+function to(p240)
+    TweenPlayer(p240)
 end
 
 task.spawn(function()
@@ -2174,7 +2281,299 @@ spawn(function()
 		end);
 	end);
 end);
+_G.UltraAttack = false
+_G.UltraClick = false
+local Players = game:GetService("Players")
+local VIM = game:GetService("VirtualInputManager")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualUser = game:GetService("VirtualUser")
+local lp = Players.LocalPlayer
 
+-- Require modules
+local Net = require(ReplicatedStorage.Modules.Net)
+local CombatUtil = require(ReplicatedStorage.Modules.CombatUtil)
+
+-- Remotes
+local hitRemote = ReplicatedStorage.Modules.Net:FindFirstChild("RE/RegisterHit")
+local attackRemote = ReplicatedStorage.Modules.Net:FindFirstChild("RE/RegisterAttack")
+
+-- ==========================================
+-- CODE CLICK MỚI CỦA BẠN
+-- ==========================================
+
+getgenv()._FastAttackBackup = getgenv()._FastAttackBackup or {}
+
+-- config
+local HITBOX = 1000
+local LOOP_DELAY = 0.01
+
+local function safeRequireWeaponData()
+    local ok, mod = pcall(function()
+        return require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("WeaponData"))
+    end)
+    return ok and mod or nil
+end
+
+local WeaponData = safeRequireWeaponData()
+
+local function findAttackMelee()
+    if getgenv().attackMelee and typeof(getgenv().attackMelee) == "function" then
+        return getgenv().attackMelee
+    end
+
+    if typeof(getgc) ~= "function" or typeof(debug) ~= "table" or typeof(debug.getinfo) ~= "function" then
+        return nil
+    end
+
+    for _, v in next, getgc(true) do
+        if typeof(v) == "function" then
+            local ok, info = pcall(debug.getinfo, v)
+            if ok and info and info.name == "attackMelee" then
+                getgenv().attackMelee = v
+                return v
+            end
+        end
+    end
+    return nil
+end
+
+local function cacheUpvalueTargets(fn)
+    if getgenv()._FastAttackBackup._uv_cached then return end
+    getgenv()._FastAttackBackup._uv_cached = true
+    getgenv()._FastAttackBackup._uv_idx = {}
+
+    if typeof(getupvalues) ~= "function" then return end
+
+    local ok, uvs = pcall(getupvalues, fn)
+    if not ok or type(uvs) ~= "table" then return end
+
+    for i, v in next, uvs do
+        local t = typeof(v)
+        if t == "number" then
+            if v > 0 and v < 5 then
+                table.insert(getgenv()._FastAttackBackup._uv_idx, {i = i, kind = "number"})
+            end
+        elseif t == "boolean" then
+            if v == true then
+                table.insert(getgenv()._FastAttackBackup._uv_idx, {i = i, kind = "boolean"})
+            end
+        end
+    end
+end
+
+local function applyFastUpvalues(fn)
+    if typeof(setupvalue) ~= "function" then return end
+    local idxs = getgenv()._FastAttackBackup._uv_idx
+    if type(idxs) ~= "table" then return end
+
+    for _, it in ipairs(idxs) do
+        if it.kind == "number" then
+            pcall(setupvalue, fn, it.i, 0)
+        elseif it.kind == "boolean" then
+            pcall(setupvalue, fn, it.i, false)
+        end
+    end
+end
+
+-- Vòng lặp click mới
+task.spawn(function()
+    repeat task.wait() until game:IsLoaded() and lp
+
+    while task.wait(0.2) do
+        local fn = findAttackMelee()
+        if fn then
+            cacheUpvalueTargets(fn)
+            break
+        end
+    end
+
+    while task.wait(LOOP_DELAY) do
+        if _G.UltraClick then
+            pcall(function()
+                local attackFn = getgenv().attackMelee
+                if typeof(attackFn) ~= "function" then
+                    attackFn = findAttackMelee()
+                    if typeof(attackFn) ~= "function" then
+                        return
+                    end
+                end
+
+                local char = lp.Character
+                if not char then return end
+
+                local tool = char:FindFirstChildOfClass("Tool")
+                if not tool then return end
+
+                if not WeaponData then
+                    WeaponData = safeRequireWeaponData()
+                    if not WeaponData then return end
+                end
+
+                local weaponName = tool:GetAttribute("WeaponName")
+                if not weaponName then return end
+
+                local w = WeaponData[weaponName]
+                if not w then return end
+
+                if getgenv()._FastAttackBackup.Hitbox == nil then
+                    getgenv()._FastAttackBackup.Hitbox = w.HitboxMagnitude
+                end
+
+                applyFastUpvalues(attackFn)
+                w.HitboxMagnitude = HITBOX
+
+                pcall(function()
+                    VIM:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+                    VIM:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+                end)
+                pcall(attackFn)
+            end)
+        end
+    end
+end)
+
+-- ==========================================
+-- ULTRA ATTACK GỐC
+-- ==========================================
+
+local function FastAttack(target)
+    local char = lp.Character
+    if not char then return end
+    local hrp = target:FindFirstChild("HumanoidRootPart")
+    local hum = target:FindFirstChild("Humanoid")
+    if not hrp or not hum or hum.Health <= 0 then return end
+    local tool = char:FindFirstChildOfClass("Tool")
+    if not tool then return end
+    pcall(function()
+        local weaponName = CombatUtil:GetWeaponName(tool)
+        local uuid = tostring(lp.UserId):sub(2,4) .. tostring(math.random(10000,99999))
+        local hitData = {{target, hrp}}
+        hitRemote:FireServer(hrp, hitData, nil, nil, uuid)
+        CombatUtil:ApplyDamageHighlight(target, char, weaponName, hrp, nil)
+    end)
+end
+local function GetMobs()
+    local mobs = {}
+    for _, mob in ipairs(workspace.Enemies:GetChildren()) do
+        if mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+            table.insert(mobs, mob)
+        end
+    end
+    return mobs
+end
+
+task.spawn(function()
+    while task.wait(0.1) do
+        if _G.UltraAttack then
+            pcall(function()
+                local mobs = GetMobs()
+                if #mobs > 0 then
+                    if attackRemote then attackRemote:FireServer() end
+                    for _, mob in ipairs(mobs) do FastAttack(mob) end
+                end
+            end)
+        end
+    end
+end)
+
+
+-- ==========================================
+-- SERVICES
+-- ==========================================
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local VirtualUser = game:GetService("VirtualUser")
+local Lighting = game:GetService("Lighting")
+local CollectionService = game:GetService("CollectionService")
+
+-- PLAYER
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui", 5)
+
+-- CHARACTER
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+local ply = Players
+local replicated = ReplicatedStorage
+local RunSer = RunService
+local vim1 = VirtualInputManager
+local vim2 = VirtualUser
+local TW = TweenService
+local plr = Player
+local Root = HumanoidRootPart
+function GetWeaponInventory(p193)
+    local v194, v195, v196 = pairs(game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("getInventory"))
+    while true do
+        local v197
+        v196, v197 = v194(v195, v196)
+        if v196 == nil then
+            break
+        end
+        if type(v197) == "table" and (v197.Type == "Sword" and v197.Name == p193) then
+            return true
+        end
+    end
+    return false
+end
+local vu198 = game.Players.LocalPlayer
+
+function AttackNoCoolDown()
+    local char = plr.Character
+    if not char then return end
+
+    local tool = char:FindFirstChildOfClass("Tool")
+    if not tool then return end
+
+    local enemies = game:GetService("Workspace").Enemies:GetChildren()
+    local myPos = char:GetPivot().Position
+    local targetMobs = {}
+    local targetHead = nil
+
+    for _, mob in pairs(enemies) do
+        local hum = mob:FindFirstChild("Humanoid")
+        local hrp = mob:FindFirstChild("HumanoidRootPart")
+        local head = mob:FindFirstChild("Head")
+
+        if hum and hum.Health > 0 and hrp and head and not mob:GetAttribute("IsBoat") then
+            if (myPos - head.Position).Magnitude <= 60 then
+                table.insert(targetMobs, {mob, head})
+                targetHead = head
+            end
+        end
+    end
+
+    if not targetHead then return end
+
+    pcall(function()
+        local netMods = game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Net")
+        local attackRE = netMods:WaitForChild("RE/RegisterAttack")
+        local hitRE = netMods:WaitForChild("RE/RegisterHit")
+
+        if #targetMobs > 0 then
+            attackRE:FireServer(1e-9)
+            hitRE:FireServer(targetHead, targetMobs)
+        end
+    end)
+end
+
+
+function to(p240)
+    repeat
+        wait(_G.Fast_Delay)
+        game.Players.LocalPlayer.Character.Humanoid:ChangeState(15)
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = p240
+        task.wait()
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = p240
+    until (p240.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude <= 2000
+end
 local env = (getgenv or getrenv or getfenv)();
 local rs = game:GetService("ReplicatedStorage");
 local players = game:GetService("Players");
@@ -3074,15 +3473,16 @@ LevelFarmMethodDropdown = Tabs.MainTab:Dropdown({
 	Callback = function(option)
 		_G.Settings.Main["Farm Level Method"] = option;
 		(getgenv()).SaveSetting();
+
 	end
 });
 Tabs.MainTab:Toggle({
     Title = "Auto Farm Level",
     Default = _G.Settings.Main["Auto Farm"],
     Callback = function(Value)
-        _G.Settings.Main["Auto Farm"] = Value
-        
-       
+        _G.Settings.Main["Auto Farm"] = Value;
+        (getgenv()).SaveSetting();
+        StopTween(_G.Settings.Main["Auto Farm"]);
     end
 })
 spawn(function()
@@ -6921,6 +7321,14 @@ FarmDistanceSlider = Tabs.SettingsTab:Slider({
 		_G.Settings.Setting["Farm Distance"] = value;
 	end
 });
+BypassTPToggle = Tabs.SettingsTab:Toggle({
+	Title = "Bypass TP",
+	Value = true,
+	Callback = function(state)
+		_G.Settings.Setting["Bypass TP"] = state;
+		(getgenv()).SaveSetting();
+	end
+});
 PlayerTweenSpeedSlider = Tabs.SettingsTab:Slider({
 	Title = "Player Tween Speed",
 	Step = 1,
@@ -6933,6 +7341,120 @@ PlayerTweenSpeedSlider = Tabs.SettingsTab:Slider({
 		_G.Settings.Setting["Player Tween Speed"] = value;
 	end
 });
+--------bring mob---------------------------
+-- Khai báo cấu hình ban đầu
+_G.Settings = _G.Settings or {Setting = {}}
+_G.BringRange = _G.BringRange or 235
+_G.MaxBringMobs = _G.MaxBringMobs or 3 -- Giới hạn gom 5 quái cùng lúc
+
+_G.FarmPriorityElf = _G.FarmPriorityElf or false
+_G.FarmMastery_S = _G.FarmMastery_S or false
+
+local TweenService = game:GetService("TweenService")
+local TweenInfoBring = TweenInfo.new(
+    0.45, 
+    Enum.EasingStyle.Linear,
+    Enum.EasingDirection.Out
+)
+
+-- Hàm kiểm tra trạng thái Farm dựa trên cấu hình g setting.lua[cite: 5]
+local function FarmAtivo()
+    -- ƯU TIÊN TUYỆT ĐỐI (ELF)
+    if _G.FarmPriorityElf or _G.FarmElfLevelCustom then
+        return true
+    end
+
+    -- Nếu các bảng cài đặt chưa tải xong thì không chạy[cite: 5]
+    if not _G.Settings.Main then return false end
+
+    -- Trả về true nếu bất kỳ tính năng farm nào được bật
+    return _G.Settings.Main["Auto Farm"] or 
+           _G.Settings.Farm["Auto Farm Bone"] or 
+           _G.Settings.Farm["Auto Elite Hunter"] or
+           _G.Settings.Items["Auto Soul Guitar"] or
+           _G.FarmMastery_S or _G.FarmMastery_G
+end
+
+-- Biến kiểm soát nội bộ
+local _B = false
+
+-- Hàm lọc quái Boss/Raid để tránh lỗi script
+local function IsRaidMob(mob)
+    local n = mob.Name:lower()
+    if n:find("raid") or n:find("microchip") or n:find("island") then  
+        return true  
+    end  
+    if mob:GetAttribute("IsRaid") or mob:GetAttribute("RaidMob") or mob:GetAttribute("IsBoss") then  
+        return true  
+    end  
+    local hum = mob:FindFirstChild("Humanoid")  
+    if hum and hum.WalkSpeed == 0 then  
+        return true  
+    end  
+    return false
+end
+
+-- Hàm BringEnemy chính (Sử dụng Tween mượt mà)
+BringEnemy = function()
+    -- Chỉ chạy nếu FarmAtivo và Bring Mob trong Settings được bật[cite: 5]
+    if not FarmAtivo() or not _B or not _G.Settings.Setting["Bring Mob"] then return end
+
+    local plr = game.Players.LocalPlayer  
+    local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")  
+    if not hrp then return end  
+
+    -- Cập nhật SimulationRadius để có quyền điều khiển quái
+    pcall(function()  
+        sethiddenproperty(plr, "SimulationRadius", math.huge)  
+    end)  
+
+    -- Điểm gom là vị trí quái mục tiêu (PosMon) hoặc vị trí nhân vật
+    local targetPos = PosMon or hrp.Position  
+    local enemies = workspace.Enemies:GetChildren()  
+    local count = 0  
+
+    for _, mob in ipairs(enemies) do  
+        if count >= _G.MaxBringMobs then break end  
+
+        local hum = mob:FindFirstChild("Humanoid")  
+        local root = mob:FindFirstChild("HumanoidRootPart")  
+
+        -- Kiểm tra điều kiện quái và khoảng cách
+        if hum and root and hum.Health > 0 and not IsRaidMob(mob) then  
+            local dist = (root.Position - (typeof(targetPos) == "CFrame" and targetPos.p or targetPos)).Magnitude  
+
+            if dist <= _G.BringRange and not root:GetAttribute("Tweening") then  
+                count += 1  
+                root:SetAttribute("Tweening", true)  
+
+                -- Gom quái về vị trí đích bằng Tween
+                local goal = typeof(targetPos) == "CFrame" and targetPos or CFrame.new(targetPos)
+                local tween = TweenService:Create(root, TweenInfoBring, { CFrame = goal })  
+
+                tween:Play()  
+                tween.Completed:Once(function()  
+                    if root then root:SetAttribute("Tweening", false) end  
+                end)  
+            end  
+        end  
+    end
+end
+
+-- Bộ điều khiển vòng lặp gom quái (Chạy song song)
+task.spawn(function()
+    while task.wait(0.01) do
+        if FarmAtivo() and _G.Settings.Setting["Bring Mob"] then
+            _B = true
+            BringEnemy()
+            task.wait(3) -- Thời gian gom
+            _B = false  
+            task.wait(2) -- Nghỉ ngắn để giảm lag
+        else  
+            _B = false  
+            task.wait(1)  
+        end  
+    end
+end)
 BringMobToggle = Tabs.SettingsTab:Toggle({
 	Title = "Bring Mob",
 	Value = true,
@@ -6941,33 +7463,56 @@ BringMobToggle = Tabs.SettingsTab:Toggle({
 		(getgenv()).SaveSetting();
 	end
 });
+
+local BringList = {"Low", "Normal", "High", "Custom"}
+Tabs.SettingsTab:Dropdown({
+    Title = "Bring Mob Mode",
+    Value = _G.Settings.Setting["Bring Mob Mode"] or "Normal",
+    Values = BringList,
+    Callback = function(option)
+        _G.Settings.Setting["Bring Mob Mode"] = option
+        -- Cập nhật Range dựa trên lựa chọn
+        if option == "Low" then 
+            _G.BringRange = 150
+        elseif option == "Normal" then 
+            _G.BringRange = 250
+        elseif option == "High" then 
+            _G.BringRange = 600 
+        elseif option == "Custom" then
+            -- Nếu là Custom, lấy giá trị từ ô Input đã lưu
+            _G.BringRange = _G.Settings.Setting["Custom Value"] or 235
+        end
+    end
+})
+
+-- Ô nhập khoảng cách tùy chỉnh
+Tabs.SettingsTab:Input({
+    Title = "Custom Bring Distance",
+    Placeholder = "Nhập số...",
+    Callback = function(Value)
+        local num = tonumber(Value)
+        if num and num > 0 then
+            _G.Settings.Setting["Custom Value"] = num
+            -- Nếu đang ở chế độ Custom thì mới áp dụng số vừa nhập
+            if _G.Settings.Setting["Bring Mob Mode"] == "Custom" then
+                _G.BringRange = num
+            end
+        end
+    end
+})
+-- Đoạn điều khiển Bring Mob của bạn sau khi đã sửa để gọi hàm BringEnemy
 spawn(function()
-	while task.wait() do
-		if _G.Settings.Setting["Bring Mob"] then
-			pcall(function()
-				for i, v in pairs(game.Workspace.Enemies:GetChildren()) do
-					if not string.find(v.Name, "Boss") and v.Name == MonFarm and (v.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude <= BringMobDistance then
-						v.HumanoidRootPart.CFrame = PosMon;
-						v.HumanoidRootPart.Size = Vector3.new(1, 1, 1);
-					end;
-				end;
-			end);
-		end;
-	end;
-end);
-local BringList = {
-	"Low",
-	"Normal",
-	"High"
-};
-BringMobDropdown = Tabs.SettingsTab:Dropdown({
-	Title = "Bring Mob",
-	Value = _G.Settings.Setting["Bring Mob Mode"],
-	Values = BringList,
-	Callback = function(option)
-		_G.Settings.Setting["Bring Mob Mode"] = option;
-	end
-});
+    while task.wait() do
+        -- Kiểm tra xem nút Bring Mob trên UI có bật không
+        if _G.Settings.Setting["Bring Mob"] then
+            pcall(function()
+                -- Thay vì viết code gom quái dài dòng ở đây, ta chỉ cần gọi hàm đã viết
+                BringEnemy() 
+            end)
+        end
+    end
+end)
+
 local AttackList = {
 	"Slow",
 	"Normal",
@@ -6995,392 +7540,8 @@ spawn(function()
 		end;
 	end;
 end);
-spawn(function()
-	while wait() do
-		if _G.Settings.Setting["Bring Mob"] then
-			pcall(function()
-				if _G.Settings.Setting["Bring Mob Mode"] == "Low" then
-					BringMobDistance = 150;
-				elseif _G.Settings.Setting["Bring Mob Mode"] == "Normal" then
-					BringMobDistance = 250;
-				elseif _G.Settings.Setting["Bring Mob Mode"] == "High" then
-					BringMobDistance = 800;
-				end;
-			end);
-		end;
-	end;
-end);
-_G.UltraAttack = false
-_G.UltraClick = false
-local Players = game:GetService("Players")
-local VIM = game:GetService("VirtualInputManager")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local VirtualUser = game:GetService("VirtualUser")
-local lp = Players.LocalPlayer
-
--- Require modules
-local Net = require(ReplicatedStorage.Modules.Net)
-local CombatUtil = require(ReplicatedStorage.Modules.CombatUtil)
-
--- Remotes
-local hitRemote = Net:RemoteEvent("RegisterHit")
-local attackRemote = ReplicatedStorage.Modules.Net:FindFirstChild("RE/RegisterAttack")
-
--- ==========================================
--- CODE CLICK MỚI CỦA BẠN
--- ==========================================
-
-getgenv()._FastAttackBackup = getgenv()._FastAttackBackup or {}
-
--- config
-local HITBOX = 1000
-local LOOP_DELAY = 0.05
-
-local function safeRequireWeaponData()
-    local ok, mod = pcall(function()
-        return require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("WeaponData"))
-    end)
-    return ok and mod or nil
-end
-
-local WeaponData = safeRequireWeaponData()
-
-local function findAttackMelee()
-    if getgenv().attackMelee and typeof(getgenv().attackMelee) == "function" then
-        return getgenv().attackMelee
-    end
-
-    if typeof(getgc) ~= "function" or typeof(debug) ~= "table" or typeof(debug.getinfo) ~= "function" then
-        return nil
-    end
-
-    for _, v in next, getgc(true) do
-        if typeof(v) == "function" then
-            local ok, info = pcall(debug.getinfo, v)
-            if ok and info and info.name == "attackMelee" then
-                getgenv().attackMelee = v
-                return v
-            end
-        end
-    end
-    return nil
-end
-
-local function cacheUpvalueTargets(fn)
-    if getgenv()._FastAttackBackup._uv_cached then return end
-    getgenv()._FastAttackBackup._uv_cached = true
-    getgenv()._FastAttackBackup._uv_idx = {}
-
-    if typeof(getupvalues) ~= "function" then return end
-
-    local ok, uvs = pcall(getupvalues, fn)
-    if not ok or type(uvs) ~= "table" then return end
-
-    for i, v in next, uvs do
-        local t = typeof(v)
-        if t == "number" then
-            if v > 0 and v < 5 then
-                table.insert(getgenv()._FastAttackBackup._uv_idx, {i = i, kind = "number"})
-            end
-        elseif t == "boolean" then
-            if v == true then
-                table.insert(getgenv()._FastAttackBackup._uv_idx, {i = i, kind = "boolean"})
-            end
-        end
-    end
-end
-
-local function applyFastUpvalues(fn)
-    if typeof(setupvalue) ~= "function" then return end
-    local idxs = getgenv()._FastAttackBackup._uv_idx
-    if type(idxs) ~= "table" then return end
-
-    for _, it in ipairs(idxs) do
-        if it.kind == "number" then
-            pcall(setupvalue, fn, it.i, 0)
-        elseif it.kind == "boolean" then
-            pcall(setupvalue, fn, it.i, false)
-        end
-    end
-end
-
--- Vòng lặp click mới
-task.spawn(function()
-    repeat task.wait() until game:IsLoaded() and lp
-
-    while task.wait(0.2) do
-        local fn = findAttackMelee()
-        if fn then
-            cacheUpvalueTargets(fn)
-            break
-        end
-    end
-
-    while task.wait(LOOP_DELAY) do
-        if _G.UltraClick then
-            pcall(function()
-                local attackFn = getgenv().attackMelee
-                if typeof(attackFn) ~= "function" then
-                    attackFn = findAttackMelee()
-                    if typeof(attackFn) ~= "function" then
-                        return
-                    end
-                end
-
-                local char = lp.Character
-                if not char then return end
-
-                local tool = char:FindFirstChildOfClass("Tool")
-                if not tool then return end
-
-                if not WeaponData then
-                    WeaponData = safeRequireWeaponData()
-                    if not WeaponData then return end
-                end
-
-                local weaponName = tool:GetAttribute("WeaponName")
-                if not weaponName then return end
-
-                local w = WeaponData[weaponName]
-                if not w then return end
-
-                if getgenv()._FastAttackBackup.Hitbox == nil then
-                    getgenv()._FastAttackBackup.Hitbox = w.HitboxMagnitude
-                end
-
-                applyFastUpvalues(attackFn)
-                w.HitboxMagnitude = HITBOX
-
-                pcall(function()
-                    VIM:SendMouseButtonEvent(0, 0, 0, true, game, 0)
-                    VIM:SendMouseButtonEvent(0, 0, 0, false, game, 0)
-                end)
-                pcall(attackFn)
-            end)
-        end
-    end
-end)
-
--- ==========================================
--- ULTRA ATTACK GỐC
--- ==========================================
-
-local function FastAttack(target)
-    local char = lp.Character
-    if not char then return end
-    local hrp = target:FindFirstChild("HumanoidRootPart")
-    local hum = target:FindFirstChild("Humanoid")
-    if not hrp or not hum or hum.Health <= 0 then return end
-    local tool = char:FindFirstChildOfClass("Tool")
-    if not tool then return end
-    pcall(function()
-        local weaponName = CombatUtil:GetWeaponName(tool)
-        local uuid = tostring(lp.UserId):sub(2,4) .. tostring(math.random(10000,99999))
-        local hitData = {{target, hrp}}
-        hitRemote:FireServer(hrp, hitData, nil, nil, uuid)
-        CombatUtil:ApplyDamageHighlight(target, char, weaponName, hrp, nil)
-    end)
-end
-local function GetMobs()
-    local mobs = {}
-    for _, mob in ipairs(workspace.Enemies:GetChildren()) do
-        if mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-            table.insert(mobs, mob)
-        end
-    end
-    return mobs
-end
-
-task.spawn(function()
-    while task.wait(0.1) do
-        if _G.UltraAttack then
-            pcall(function()
-                local mobs = GetMobs()
-                if #mobs > 0 then
-                    if attackRemote then attackRemote:FireServer() end
-                    for _, mob in ipairs(mobs) do FastAttack(mob) end
-                end
-            end)
-        end
-    end
-end)
 
 
--- ==========================================
--- SERVICES
--- ==========================================
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
-local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
-local HttpService = game:GetService("HttpService")
-local TeleportService = game:GetService("TeleportService")
-local VirtualInputManager = game:GetService("VirtualInputManager")
-local VirtualUser = game:GetService("VirtualUser")
-local Lighting = game:GetService("Lighting")
-local CollectionService = game:GetService("CollectionService")
-
--- PLAYER
-local Player = Players.LocalPlayer
-local PlayerGui = Player:WaitForChild("PlayerGui", 5)
-
--- CHARACTER
-local Character = Player.Character or Player.CharacterAdded:Wait()
-local Humanoid = Character:WaitForChild("Humanoid")
-local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
-
-local ply = Players
-local replicated = ReplicatedStorage
-local RunSer = RunService
-local vim1 = VirtualInputManager
-local vim2 = VirtualUser
-local TW = TweenService
-local plr = Player
-local Root = HumanoidRootPart
-function GetWeaponInventory(p193)
-    local v194, v195, v196 = pairs(game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("getInventory"))
-    while true do
-        local v197
-        v196, v197 = v194(v195, v196)
-        if v196 == nil then
-            break
-        end
-        if type(v197) == "table" and (v197.Type == "Sword" and v197.Name == p193) then
-            return true
-        end
-    end
-    return false
-end
-local vu198 = game.Players.LocalPlayer
-function AttackNoCoolDown()
-	-- upvalues: (ref) vu198
-    local vu199 = vu198.Character
-    if not vu199 then
-        return
-    end
-    local v200, v201, v202 = ipairs(vu199:GetChildren())
-    local v203 = nil
-    while true do
-        local vu204
-        v202, vu204 = v200(v201, v202)
-        if v202 == nil then
-            vu204 = v203
-            break
-        end
-        if vu204:IsA("Tool") then
-            break
-        end
-    end
-    if vu204 then
-        local function vu207(p205)
-            local v206 = p205 and p205:FindFirstChild("Humanoid")
-            if v206 then
-                v206 = p205.Humanoid.Health > 0
-            end
-            return v206
-        end
-        local function v217(p208)
-			-- upvalues: (ref) vu199, (ref) vu207
-            local v209 = game:GetService("Workspace").Enemies:GetChildren()
-            local v210 = vu199:GetPivot().Position
-            local v211, v212, v213 = ipairs(v209)
-            local v214 = {}
-            while true do
-                local v215
-                v213, v215 = v211(v212, v213)
-                if v213 == nil then
-                    break
-                end
-                local v216 = v215:FindFirstChild("HumanoidRootPart")
-                if v216 and (vu207(v215) and (v216.Position - v210).Magnitude <= p208) then
-                    table.insert(v214, v215)
-                end
-            end
-            return v214
-        end
-        if vu204:FindFirstChild("LeftClickRemote") then
-            local v218 = v217(60)
-            local v219, v220, v221 = ipairs(v218)
-            local vu222 = 1
-            while true do
-                local v223
-                v221, v223 = v219(v220, v221)
-                if v221 == nil then
-                    break
-                end
-                local vu224 = (v223.HumanoidRootPart.Position - vu199:GetPivot().Position).Unit
-                pcall(function()
-					-- upvalues: (ref) vu204, (ref) vu224, (ref) vu222
-                    vu204.LeftClickRemote:FireServer(vu224, vu222)
-                end)
-                local v225 = vu222 + 1
-                vu222 = v225 > 1000000000 and 1 or v225
-            end
-        else
-            local v226 = game:GetService("Workspace").Enemies:GetChildren()
-            local v227 = vu199:GetPivot().Position
-            local v228, v229, v230 = ipairs(v226)
-            local v231 = vu207
-            local vu232 = {}
-            local vu233 = nil
-            while true do
-                local v234, v235 = v228(v229, v230)
-                if v234 == nil then
-                    break
-                end
-                v230 = v234
-                if not v235:GetAttribute("IsBoat") and v231(v235) then
-                    local v236 = v235:FindFirstChild("Head")
-                    if v236 and (v227 - v236.Position).Magnitude <= 60 then
-                        table.insert(vu232, {
-                            v235,
-                            v236
-                        })
-                        vu233 = v236
-                    end
-                end
-            end
-            if not vu233 then
-                return
-            end
-            pcall(function()
-				-- upvalues: (ref) vu232, (ref) vu233
-                local v237 = game:GetService("ReplicatedStorage")
-                local v238 = v237:WaitForChild("Modules"):WaitForChild("Net"):WaitForChild("RE/RegisterAttack")
-                local v239 = v237:WaitForChild("Modules"):WaitForChild("Net"):WaitForChild("RE/RegisterHit")
-                if # vu232 <= 0 then
-                    task.wait(1e-9)
-                else
-                    v238:FireServer(1e-9)
-                    v239:FireServer(vu233, vu232)
-                end
-            end)
-        end
-    end
-end
-Type = 1
-spawn(function()
-    while wait() do
-        if Type == 1 then
-            Pos = CFrame.new(0, 30, 0)
-        end
-    end
-end)
-spawn(function()
-    while wait() do
-        Type = 1
-    end
-end)
-function to(p240)
-    repeat
-        wait(_G.Fast_Delay)
-        game.Players.LocalPlayer.Character.Humanoid:ChangeState(15)
-        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = p240
-        task.wait()
-        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = p240
-    until (p240.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude <= 2000
-end
 AttackAuraToggle = Tabs.SettingsTab:Toggle({
 	Title = "Atatck Aura",
 	Desc = "Attack Nearest Enemies",
@@ -7390,6 +7551,7 @@ AttackAuraToggle = Tabs.SettingsTab:Toggle({
 		(getgenv()).SaveSetting();
 	end
 });
+task.wait(0.5)
 AttackAuraToggle = Tabs.SettingsTab:Toggle({
     Title = "Ultra Attack",
     Desc = "visual (not recommen)",
