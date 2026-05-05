@@ -1,4 +1,4 @@
----v6
+---v10
 print("hello what are looking")
 local executor = (getexecutorname and getexecutorname()) or (identifyexecutor and identifyexecutor())
 if executor then
@@ -17,11 +17,12 @@ if executor then
         string.find(executor, "CodeX") or
         string.find(executor, "Velocity") or
         string.find(executor, "Romix") or
+		string.find(executor, "Ronix") or
         string.find(executor, "Neutron")
     then
         print("ok")
     else
-        game.Players.LocalPlayer:Kick("Please use Delta Exploit or PC use volcano or Exploit paid!")
+        game.Players.LocalPlayer:Kick("Please use Delta Exploit or PC use hight unc and Sunc or Exploit paid!")
     end
 end
 local WindUI = (loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua")))();
@@ -270,6 +271,7 @@ _G.Settings = {
 		["Fast Attack Mode"] = "Normal",
 		["Attack Aura"] = true,
 		["Ultra Attack"] = false,
+		["OneHitKill"] = false,
 		["Hide Notification"] = false,
 		["Hide Damage Text"] = true,
 		["Black Screen"] = false,
@@ -2127,148 +2129,159 @@ local attckfuntion = (
 -- ==========================================
 -- SERVICES
 -- ==========================================
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
-local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
+--
 
-local Player = Players.LocalPlayer
-local CurrentTween = nil
-
--- ==========================================
--- HÀM HỖ TRỢ BYPASS (GET ISLAND)
--- ==========================================
-local function GetIsLand(...)
-    local RealtargetPos = {...}
-    local targetPos = RealtargetPos[1]
-    local RealTarget
-    if type(targetPos) == "vector" then
-        RealTarget = targetPos
-    elseif type(targetPos) == "userdata" then
-        RealTarget = targetPos.Position
-    elseif type(targetPos) == "number" then
-        RealTarget = CFrame.new(unpack(RealtargetPos)).p
-    end
-
-    local ReturnValue
-    local CheckInOut = math.huge
-    if Player.Team then
-        local spawns = Workspace._WorldOrigin.PlayerSpawns:FindFirstChild(tostring(Player.Team))
-        if spawns then
-            for _, v in pairs(spawns:GetChildren()) do
-                local ReMagnitude = (RealTarget - v:GetModelCFrame().p).Magnitude
-                if ReMagnitude < CheckInOut then
-                    CheckInOut = ReMagnitude
-                    ReturnValue = v.Name
-                end
-            end
-        end
-    end
-    return ReturnValue
-end
-
+--
 -- ==========================================
 -- HÀM TWEEN PLAYER (TP 2) + BYPASS TP
 -- ==========================================
+-- Chuyển đổi từ hệ thống cũ sang tween astra.lua
+-- Biến kiểm soát trạng thái
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+
+local LocalPlayer = Players.LocalPlayer
+local CurrentTween = nil
+local shouldTween = false
+
 function TweenPlayer(pos)
-    if not pos then return end
-    
-    local char = Player.Character or Player.CharacterAdded:Wait()
-    local hrp = char:WaitForChild("HumanoidRootPart")
-    local hum = char:WaitForChild("Humanoid")
+    local char = LocalPlayer.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    local hrp = char.HumanoidRootPart
 
-    local targetCFrame = typeof(pos) == "CFrame" and pos or CFrame.new(pos)
-    local distance = (hrp.Position - targetCFrame.p).Magnitude
-    
-    -- Lấy speed từ Settings sẵn có của ông
-    local speed = (_G.Settings.Setting and _G.Settings.Setting["Player Tween Speed"]) or 300
+    -- 🔴 TẮT / CLEANUP
+    if not pos then 
+        shouldTween = false
 
-    if CurrentTween then 
-        CurrentTween:Cancel() 
-        CurrentTween = nil 
-    end
-
-    -- LOGIC BYPASS TP (Chỉ chạy khi bật Toggle Bypass và khoảng cách > 3000)[cite: 2, 3]
-    if _G.Settings.Configs and _G.Settings.Configs["Bypass TP"] and distance > 3000 then
-        local island = GetIsLand(targetCFrame)
-        local spawnValue = Player.Data:FindFirstChild("SpawnPoint") and Player.Data.SpawnPoint.Value
-        
-        if spawnValue == tostring(island) then
-            ReplicatedStorage.Remotes.CommF_:InvokeServer("TeleportToSpawn")
-            task.wait(0.2)
-            return -- Đã dịch chuyển xong, không cần Tween nữa
+        if CurrentTween then
+            CurrentTween:Cancel()
+            CurrentTween = nil
         end
-    end
 
-    -- Dừng Tween nếu đã gần mục tiêu
-    if distance < 15 then
-        hrp.CFrame = targetCFrame
+        local astra = workspace:FindFirstChild("astra")
+        if astra then astra:Destroy() end
+
+        if char and hrp then
+            for _, v in pairs(char:GetDescendants()) do
+                if v:IsA("BasePart") then
+                    v.CanCollide = true
+                    v.AssemblyLinearVelocity = Vector3.zero
+                end
+            end
+
+            hrp.Anchored = false
+
+            for _, v in pairs(hrp:GetChildren()) do
+                if v:IsA("BodyMover") or v:IsA("AlignPosition") or v:IsA("AlignOrientation") then
+                    v:Destroy()
+                end
+            end
+
+            local humanoid = char:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid.PlatformStand = false
+                humanoid:ChangeState(Enum.HumanoidStateType.Running)
+            end
+
+            hrp.CFrame = hrp.CFrame + Vector3.new(0, 3, 0)
+        end
+
         return 
     end
 
-    -- Tạo lực nâng chống rơi (BodyVelocity)
-    local bv = hrp:FindFirstChild("FarmVelocity") or Instance.new("BodyVelocity")
-    bv.Name = "FarmVelocity"
-    bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-    bv.Velocity = Vector3.zero
-    bv.Parent = hrp
+    local targetCFrame = typeof(pos) == "CFrame" and pos or CFrame.new(pos)
+    local distance = (hrp.Position - targetCFrame.Position).Magnitude
+    local speed = (_G.Settings.Setting and _G.Settings.Setting["Player Tween Speed"]) or 300
 
-    pcall(function()
-        local tweenInfo = TweenInfo.new(distance / speed, Enum.EasingStyle.Linear)
-        CurrentTween = TweenService:Create(hrp, tweenInfo, {CFrame = targetCFrame})
-        
-        local isTweening = true
-        
-        task.spawn(function()
-            while isTweening do
-                if hum.Health <= 0 then break end
-                pcall(function()
-                    -- Noclip triệt để xuyên vật thể khi đang di chuyển
-                    for _, v in pairs(char:GetDescendants()) do
-                        if v:IsA("BasePart") then
-                            v.CanCollide = false
-                        end
-                    end
-                end)
-                task.wait()
-            end
-            
-            -- Dọn dẹp noclip và lực nâng sau khi xong
-            if hrp:FindFirstChild("FarmVelocity") then hrp.FarmVelocity:Destroy() end
-            pcall(function()
-                for _, v in pairs(char:GetDescendants()) do
+    if CurrentTween then
+        CurrentTween:Cancel()
+    end
+
+    hrp.Anchored = false
+
+    if distance < 15 then
+        hrp.CFrame = targetCFrame
+        shouldTween = false
+        return
+    end
+
+    shouldTween = true
+
+    -- 🟢 ASTRA BLOCK
+    local block = workspace:FindFirstChild("astra") or Instance.new("Part")
+    block.Name = "astra"
+    block.Size = Vector3.new(1,1,1)
+    block.Anchored = true
+    block.CanCollide = false
+    block.Transparency = 1
+    block.Parent = workspace
+    block.CFrame = hrp.CFrame
+
+    -- Follow
+    task.spawn(function()
+        while shouldTween and block and block.Parent do
+            task.wait()
+            if char and hrp then
+                hrp.CFrame = block.CFrame
+
+                for _, v in pairs(char:GetChildren()) do
                     if v:IsA("BasePart") then
-                        v.CanCollide = true
+                        v.CanCollide = false
                     end
                 end
-            end)
-        end)
+            end
+        end
+    end)
 
-        CurrentTween.Completed:Connect(function()
-            isTweening = false
-            CurrentTween = nil
-        end)
-        
-        CurrentTween:Play()
+    local tweenInfo = TweenInfo.new(distance / speed, Enum.EasingStyle.Linear)
+    CurrentTween = TweenService:Create(block, tweenInfo, {CFrame = targetCFrame})
+    CurrentTween:Play()
+
+    CurrentTween.Completed:Connect(function()
+        shouldTween = false
     end)
 end
 
--- Chuyển hàm to cũ sang hệ thống TP 2 mới
-function to(p240)
-    TweenPlayer(p240)
-end
+-- Vòng lặp Highlight riêng biệt để không gây lag[cite: 2]
+task.spawn(function()
+    while task.wait(0.1) do
+        pcall(function()
+            local char = game.Players.LocalPlayer.Character
+            if not char then return end
+            
+            local hl = char:FindFirstChild("AstraHighlight")
 
+            if shouldTween then
+                if not hl then
+                    hl = Instance.new("Highlight")
+                    hl.Name = "AstraHighlight"
+                    hl.FillColor = Color3.fromRGB(2, 197, 60)
+                    hl.OutlineColor = Color3.fromRGB(255,255,255)
+                    hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                    hl.Parent = char
+                end
+                hl.Enabled = true
+            elseif hl then
+                hl:Destroy()
+            end
+        end)
+    end
+end)
 task.spawn(function()
 	while task.wait() do
 		pcall(function()
-			game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.Root.CFrame;
-			if (game.Players.LocalPlayer.Character.Root.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude >= 1 then
-				game.Players.LocalPlayer.Character.Root.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame;
-			end;
-		end);
-	end;
-end);
+			if shouldTween then -- 🔥 CHỈ chạy khi đang tween
+				local char = game.Players.LocalPlayer.Character
+				if char and char:FindFirstChild("Root") and char:FindFirstChild("HumanoidRootPart") then
+					char.HumanoidRootPart.CFrame = char.Root.CFrame
+					if (char.Root.Position - char.HumanoidRootPart.Position).Magnitude >= 1 then
+						char.Root.CFrame = char.HumanoidRootPart.CFrame
+					end
+				end
+			end
+		end)
+	end
+end)
 spawn(function()
 	(game:GetService("RunService")).RenderStepped:Connect(function()
 		pcall(function()
@@ -2476,7 +2489,65 @@ task.spawn(function()
     end
 end)
 
+-- ============================================================
+-- ĐÁNH NHANH: HP quái còn 25%, tự động kích hoạt hiệu ứng
+-- ============================================================
+local _oneHitConns = {}
 
+spawn(function()
+    while wait(0.1) do
+        if _G.OneHitKill then
+            -- Bật FX loop khi đánh nhanh đang on
+            if not _fxEnabled then
+                _fxEnabled = true
+                StartFXLoop()
+            end
+            pcall(function()
+                local localPlayer = game:GetService("Players").LocalPlayer
+                for _, mob in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                    local hum = mob:FindFirstChild("Humanoid")
+                    if hum and not _oneHitConns[mob] then
+                        -- Clamp HP về 25%
+                        pcall(function()
+                            sethiddenproperty(localPlayer, "SimulationRadius", math.huge)
+                            if hum.Health > hum.MaxHealth * 0.25 then
+                                hum.Health = hum.MaxHealth * 0.25
+                            end
+                        end)
+                        -- Hook: khi server restore HP → clamp lại 25%
+                        local prevHp = hum.Health
+                        _oneHitConns[mob] = hum.HealthChanged:Connect(function(newHp)
+                            if not _G.OneHitKill then return end
+                            pcall(function()
+                                sethiddenproperty(localPlayer, "SimulationRadius", math.huge)
+                                if newHp > hum.MaxHealth * 0.25 then
+                                    hum.Health = hum.MaxHealth * 0.25
+                                end
+                                prevHp = newHp
+                            end)
+                        end)
+                    end
+                end
+                -- Dọn connection mob đã despawn
+                for mob, conn in pairs(_oneHitConns) do
+                    if not mob.Parent then
+                        pcall(function() conn:Disconnect() end)
+                        _oneHitConns[mob] = nil
+                    end
+                end
+            end)
+        else
+            -- Tắt FX loop khi OneHitKill off
+            if _fxEnabled and not (_G.AutoBone or _G.AutoBoneNoQuest or _G.AutoLevel or _G.AutoNear) then
+                StopFXLoop()
+            end
+            for mob, conn in pairs(_oneHitConns) do
+                pcall(function() conn:Disconnect() end)
+            end
+            _oneHitConns = {}
+        end
+    end
+end)
 -- ==========================================
 -- SERVICES
 -- ==========================================
@@ -7563,6 +7634,105 @@ AttackAuraToggle = Tabs.SettingsTab:Toggle({
         (getgenv()).SaveSetting();
     end
 });
+AttackAuraToggle = Tabs.SettingsTab:Toggle({
+	Title = "Đánh Nhanh",
+    Desc = "ToggleOneHit(vfx)",
+    Value = _G.Settings.Items["Ultra Attack"],
+    Callback = function(state)
+		_G.OneHitKill = state;
+		getgenv().AutoClick = state;
+		(getgenv()).SaveSetting();
+	end
+})
+-- AutoClick: dùng Button1Down/Up vào giữa viewport game - KHÔNG click vào UI
+getgenv().AutoClick = false
+getgenv().ClicksPerSecond = 20
+local _vu = game:GetService("VirtualUser")
+task.spawn(function()
+    while task.wait(1 / getgenv().ClicksPerSecond) do
+        if getgenv().AutoClick then
+            pcall(function()
+                local cam = workspace.CurrentCamera
+                local vp = cam.ViewportSize
+                local center = Vector2.new(vp.X / 2, vp.Y / 2)
+                _vu:Button1Down(center, cam.CFrame)
+                task.wait(0.02)
+                _vu:Button1Up(center, cam.CFrame)
+            end)
+        end
+    end
+end)
+-- ============================================================
+-- HỆ THỐNG HIỆU ỨNG ĐÁNH: Tia lửa đóm đóm CỰC NHIỀU phủ toàn thân quái
+-- ============================================================
+local _fxThread = nil      -- coroutine vòng lặp hiệu ứng
+local _fxEnabled = false   -- bật/tắt hiệu ứng
+
+-- Danh sách sound IDs tiếng đánh (ngắn, mạnh, đa dạng)
+local _hitSounds = {
+    "rbxassetid://5221806718",
+    "rbxassetid://5221806728",
+    "rbxassetid://5221806736",
+    "rbxassetid://341336274",
+    "rbxassetid://5221806751",
+}
+-- Phát tiếng đánh ngẫu nhiên tại vị trí
+local function PlayHitSound(pos)
+    pcall(function()
+        local sid = _hitSounds[math.random(1, #_hitSounds)]
+        local snd = Instance.new("Sound")
+        snd.SoundId = sid
+        snd.Volume = 0.9
+        snd.RollOffMaxDistance = 60
+        local p = Instance.new("Part")
+        p.Anchored = true; p.CanCollide = false
+        p.Transparency = 1; p.Size = Vector3.new(0.1,0.1,0.1)
+        p.Position = pos; p.Parent = workspace
+        snd.Parent = p
+        snd:Play()
+        game:GetService("Debris"):AddItem(p, 1.5)
+    end)
+end
+
+-- Giữ tên cũ để code bên dưới dùng được
+local function ApplyHitEffect(mob)
+    SpawnSparkFX(mob)
+end
+
+-- Vòng lặp hiệu ứng chính: spam đóm + tiếng mỗi 0.06s (~17 lần/giây)
+local function StartFXLoop()
+    if _fxThread then pcall(function() task.cancel(_fxThread) end) end
+    _fxThread = task.spawn(function()
+        while _fxEnabled do
+            pcall(function()
+                if MonFarm and MonFarm ~= "" then
+                    for _, mob in pairs(game:GetService("Workspace").Enemies:GetChildren()) do
+                        if mob.Name == MonFarm
+                            and mob:FindFirstChild("HumanoidRootPart")
+                            and mob:FindFirstChild("Humanoid")
+                            and mob.Humanoid.Health > 0 then
+                            local pos = mob.HumanoidRootPart.Position
+                            SpawnSparkFX(mob)
+                            PlayHitSound(pos)
+                            break
+                        end
+                    end
+                end
+            end)
+            task.wait(0.06)
+        end
+        _fxThread = nil
+    end)
+end
+
+local function StopFXLoop()
+    _fxEnabled = false
+    if _fxThread then
+        pcall(function() task.cancel(_fxThread) end)
+        _fxThread = nil
+    end
+end
+
 spawn(function()
 	(game:GetService("RunService")).RenderStepped:Connect(function()
 		if _G.Settings.Setting["Attack Aura"] and (not _G.Settings.Main["Auto Farm Fruit Mastery"]) and (not _G.Settings.Main["Auto Farm Gun Mastery"]) then
@@ -10435,7 +10605,37 @@ spawn(function()
 		end;
 	end);
 end);
+TeleportWordSection = Tabs.TeleportTab:Section({
+	Title = "Sea Teleport",
+	TextXAlignment = "Left"
+});
+TeleportWord1Section = Tabs.TeleportTab:Section({
+	Title = "Sea 1",
+	Desc = "Word 1",
+	Callback = function()
+		game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelMain")
+    end
+});
+TeleportWord2Section = Tabs.TeleportTab:Section({
+	Title = "Sea 2",
+	Desc = "Word 2",
+	Callback = function()
+		game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelDressrosa")
+    end
+});
+TeleportWord3Section = Tabs.TeleportTab:Section({
+	Title = "Sea 3",
+	Desc = "Word 3",
+	Callback = function()
+		game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelZou")
+    end
+});
 
+
+TeleportIslandSection = Tabs.TeleportTab:Section({
+	Title = "Island",
+	TextXAlignment = "Left"
+});
 local IslandList = {};
 if World1 then
 	IslandList = {
