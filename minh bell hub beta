@@ -2892,7 +2892,7 @@ function TweenPlayer(Target)
 		--// ASTRA FOLLOW
 		Astra.CFrame = PartTele.CFrame
 
-	end)
+	end
 
 	--// RANDOM TARGET
 	local FinalTarget = TargetCFrame
