@@ -2745,7 +2745,7 @@ function TweenPlayer(Target)
 
 			BV.Name = "BodyClip"
 			BV.MaxForce = Vector3.new(100000,100000,100000)
-			BV.Velocity = Vector3.zero
+			BV.Velocity = Vector3.new(0,0.1,0)
 
 			BV.Parent = HRP
 		end
@@ -2839,15 +2839,23 @@ function TweenPlayer(Target)
 		end
 
 		--// ANTI CHEAT BYPASS
+		local NewPos
+
 		if getgenv().AntiCheatBypass then
 
-			HRP.CFrame = CFrame.new(
-				PartTele.Position + Offset
-			)
+			NewPos = PartTele.Position + Offset
 
 		else
-			HRP.CFrame = PartTele.CFrame
+
+			NewPos = PartTele.Position
 		end
+
+		-- GIỮ ROTATION
+		HRP.CFrame = CFrame.new(NewPos, NewPos + PartTele.CFrame.LookVector)
+
+		-- CHỐNG RỚT
+		HRP.AssemblyLinearVelocity = Vector3.zero
+		HRP.AssemblyAngularVelocity = Vector3.zero
 
 		--// ASTRA FOLLOW
 		Astra.CFrame = PartTele.CFrame
