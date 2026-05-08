@@ -25,7 +25,11 @@ if executor then
         game.Players.LocalPlayer:Kick("Please use Delta Exploit or PC use hight unc and Sunc or Exploit paid!")
     end
 end
-
+lp.Idled:Connect(function()
+    VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    wait(1)
+    VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+end)
 
 -- Hook nhẹ chỉ chặn mấy cái dễ gây ban
 local oldNamecall
@@ -2787,34 +2791,19 @@ function TweenPlayer(Target)
 	end
 
 	FollowConnection =
-		RunService.Stepped:Connect(function()
+		RunService.Heartbeat:Connect(function()
 
 		if not Tweening then
 			return
 		end
 
-		if not Char or not HRP then
-			Tweening = false
-			shouldTween = false
+		if not Char or not HRP or not Humanoid then
 			StopTween()
 			return
 		end
 
-		--// LEGIT OFFSET
-		local Offset = Vector3.zero
-
-		if getgenv().LegitMovement then
-
-			Offset = Vector3.new(
-				math.random(-2,2),
-				0,
-				math.random(-2,2)
-			)
-		end
-
-		--// AUTO NOCLIP
+		-- AUTO NOCLIP
 		if getgenv().AutoNoclip then
-
 			for _, v in pairs(Char:GetDescendants()) do
 				if v:IsA("BasePart") then
 					v.CanCollide = false
@@ -2822,21 +2811,64 @@ function TweenPlayer(Target)
 			end
 		end
 
-		--// DESYNC PROTECTION
+		-- FIX HUMANOID
+		Humanoid.AutoRotate = false
+		Humanoid.PlatformStand = false
+		Humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+
+			-- POSITION
+		local TargetPos = PartTele.Position
+
+		-- LEGIT OFFSET
+		if getgenv().LegitMovement then
+			TargetPos += Vector3.new(
+				math.random(-2,2),
+				0,
+				math.random(-2,2)
+			)
+		end
+
+		-- SMOOTH FOLLOW
+		HRP.CFrame = CFrame.new(
+			TargetPos,
+			TargetPos + PartTele.CFrame.LookVector
+		)
+
+		-- FIX SPIN
+		HRP.RotVelocity = Vector3.zero
+		HRP.AssemblyAngularVelocity = Vector3.zero
+
+		-- FIX FALL
+		HRP.Velocity = Vector3.zero
+		HRP.AssemblyLinearVelocity = Vector3.zero
+
+		-- KEEP HEIGHT
+		if HRP.Position.Y < PartTele.Position.Y - 5 then
+
+			HRP.CFrame = CFrame.new(
+				Vector3.new(
+					TargetPos.X,
+					PartTele.Position.Y,
+					TargetPos.Z
+				)
+			)
+		end
+
+		-- DESYNC PROTECTION
 		if getgenv().DesyncProtection then
 
 			local Dist =
 				(HRP.Position - PartTele.Position).Magnitude
 
 			if Dist >= 100 then
-
-				Tweening = false
-				shouldTween = false
-
 				StopTween()
 				return
 			end
 		end
+
+		Astra.CFrame = PartTele.CFrame
+
+	end)
 
 		--// ANTI CHEAT BYPASS
 		local NewPos
