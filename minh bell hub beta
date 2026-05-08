@@ -2296,76 +2296,34 @@ local attckfuntion = (
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local VirtualUser = game:GetService("VirtualUser")
+local TeleportService = game:GetService("TeleportService")
 
 local LocalPlayer = Players.LocalPlayer
 
---// =========================================================
 --// SETTINGS
---// =========================================================
-
-getgenv().TweenSpeed = 325
+getgenv().TweenSpeed = 300
 getgenv().TweenBypass = true
-getgenv().AntiCheatBypass = true
-getgenv().DesyncProtection = true
-getgenv().AutoBodyVelocity = true
-getgenv().AutoNoclip = true
-
-getgenv().SafeMode = true
-getgenv().SafeDistance = 200
-
-getgenv().AutoHide = true
-getgenv().CameraDetection = true
 getgenv().AdaptiveSpeed = true
 getgenv().SmartTween = true
-getgenv().LegitMovement = true
+getgenv().AutoBodyVelocity = true
+getgenv().AutoNoclip = true
+getgenv().DesyncProtection = true
+getgenv().AntiCheatBypass = true
+getgenv().LegitMovement = false
 
-getgenv().AutoHighlight = true
+getgenv().SafeMode = false
+getgenv().SafeDistance = 200
+getgenv().AutoHide = false
 getgenv().AutoEscape = false
 
---// =========================================================
-
-local CurrentTween = nil
+--// VARIABLES
 local Tweening = false
-local FollowConnection = nil
-local LastThreat = 0
 local shouldTween = false
 
---// =========================================================
---// TELEPORTERS
---// =========================================================
+local CurrentTween = nil
+local FollowConnection = nil
 
-local Teleporters = {}
-
-if game.PlaceId == 2753915549 then
-	Teleporters = {
-		Vector3.new(-7894,5547,-380),
-		Vector3.new(-4607,874,-1667),
-		Vector3.new(61163,11,1819),
-		Vector3.new(4050,-1,-1814)
-	}
-elseif game.PlaceId == 4442272183 then
-	Teleporters = {
-		Vector3.new(-390,332,673),
-		Vector3.new(2285,15,905),
-		Vector3.new(923,126,32852),
-		Vector3.new(-6509,83,-133)
-	}
-elseif game.PlaceId == 7449423635 then
-	Teleporters = {
-		Vector3.new(-12462,375,-7552),
-		Vector3.new(5745,610,-267),
-		Vector3.new(-5036,315,-3179),
-		Vector3.new(5319,23,-93),
-		Vector3.new(28286,14897,103)
-	}
-end
-
---// =========================================================
---// HELPERS
---// =========================================================
-
+--// FUNCTIONS
 local function GetCharacter()
 	return LocalPlayer.Character
 end
@@ -2380,11 +2338,9 @@ local function GetHumanoid()
 	return Char and Char:FindFirstChildOfClass("Humanoid")
 end
 
---// =========================================================
---// PLAYER DETECTION
---// =========================================================
+--// SAFE MODE
+local function IsPlayerNear(Distance)
 
-local function IsPlayerNear(distance)
 	local HRP = GetHRP()
 
 	if not HRP then
@@ -2392,18 +2348,20 @@ local function IsPlayerNear(distance)
 	end
 
 	for _, plr in pairs(Players:GetPlayers()) do
+
 		if plr ~= LocalPlayer then
 
 			local Char = plr.Character
-			local EnemyHRP = Char and Char:FindFirstChild("HumanoidRootPart")
-			local Humanoid = Char and Char:FindFirstChildOfClass("Humanoid")
+			local EnemyHRP =
+				Char and Char:FindFirstChild("HumanoidRootPart")
 
-			if EnemyHRP and Humanoid and Humanoid.Health > 0 then
+			if EnemyHRP then
 
-				local Dist = (EnemyHRP.Position - HRP.Position).Magnitude
+				local Dist =
+					(HRP.Position - EnemyHRP.Position).Magnitude
 
-				if Dist <= distance then
-					return true, plr
+				if Dist <= Distance then
+					return true
 				end
 			end
 		end
@@ -2412,106 +2370,118 @@ local function IsPlayerNear(distance)
 	return false
 end
 
---// =========================================================
---// CAMERA DETECTION
---// =========================================================
-
-local function IsLookingAtMe(player)
-	if not player.Character then
-		return false
-	end
-
-	local Head = player.Character:FindFirstChild("Head")
-	local HRP = GetHRP()
-
-	if not Head or not HRP then
-		return false
-	end
-
-	local LookVector = Head.CFrame.LookVector
-	local Direction = (HRP.Position - Head.Position).Unit
-
-	local Dot = LookVector:Dot(Direction)
-
-	return Dot > 0.8
-end
-
---// =========================================================
---// HIDE FUNCTION
---// =========================================================
-
+--// HIDE
 local function HideCharacter()
+
 	local HRP = GetHRP()
 
 	if HRP then
+
 		HRP.CFrame = CFrame.new(
-			HRP.Position.X,
-			-500,
-			HRP.Position.Z
+			math.random(-5000,5000),
+			5000,
+			math.random(-5000,5000)
 		)
 	end
 end
 
---// =========================================================
---// TELEPORTER
---// =========================================================
+--// HIGHLIGHT
+local function CreateHighlight()
 
-local function GetNearestTeleporter(target)
-	local HRP = GetHRP()
+	local Char = GetCharacter()
 
-	if not HRP then
-		return nil
+	if not Char then
+		return
 	end
 
-	local Nearest = nil
+	local HL = Char:FindFirstChild("AstraHighlight")
+
+	if not HL then
+
+		HL = Instance.new("Highlight")
+		HL.Name = "AstraHighlight"
+		HL.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+		HL.FillTransparency = 0.35
+		HL.OutlineTransparency = 0
+
+		HL.Parent = Char
+	end
+
+	task.spawn(function()
+
+		local Hue = 0
+
+		while shouldTween and HL and HL.Parent do
+
+			task.wait()
+
+			Hue += 0.01
+
+			if Hue >= 1 then
+				Hue = 0
+			end
+
+			local RGB = Color3.fromHSV(Hue,1,1)
+
+			HL.FillColor = RGB
+			HL.OutlineColor = Color3.new(1,1,1)
+
+			-- Pulse
+			HL.FillTransparency =
+				0.35 + math.sin(tick()*5)*0.1
+		end
+
+		if HL then
+			HL:Destroy()
+		end
+	end)
+end
+
+--// TELEPORTERS
+local Teleporters = {
+	Vector3.new(-7894, 5547, -380),
+	Vector3.new(-4607, 874, -1667),
+	Vector3.new(61163, 11, 1819),
+	Vector3.new(4050, -1, -1814)
+}
+
+local function GetNearestTeleporter(Target)
+
+	local Closest = nil
 	local Lowest = math.huge
 
 	for _, Pos in pairs(Teleporters) do
 
-		local Dist = (Pos - target.Position).Magnitude
+		local Dist =
+			(Pos - Target.Position).Magnitude
 
 		if Dist < Lowest then
 			Lowest = Dist
-			Nearest = Pos
+			Closest = Pos
 		end
 	end
 
-	local CurrentDistance = (target.Position - HRP.Position).Magnitude
-
-	if Lowest < CurrentDistance then
-		return Nearest
-	end
+	return Closest
 end
 
---// =========================================================
---// REQUEST ENTRANCE
---// =========================================================
-
-local function RequestEntrance(pos)
+local function RequestEntrance(Pos)
 
 	pcall(function()
-		ReplicatedStorage.Remotes.CommF_:InvokeServer(
+
+		game.ReplicatedStorage.Remotes.CommF_:InvokeServer(
 			"requestEntrance",
-			pos
+			Pos
 		)
 	end)
 
-	local HRP = GetHRP()
-
-	if HRP then
-		HRP.CFrame += Vector3.new(0,50,0)
-	end
-
-	task.wait(0.5)
+	task.wait(0.8)
 end
 
---// =========================================================
 --// STOP TWEEN
---// =========================================================
-
 function StopTween()
 
 	Tweening = false
+	shouldTween = false
 
 	if CurrentTween then
 		CurrentTween:Cancel()
@@ -2527,8 +2497,13 @@ function StopTween()
 	local HRP = GetHRP()
 	local Humanoid = GetHumanoid()
 
-	if not Char or not HRP then
-		return
+	if Char then
+
+		local PT = Char:FindFirstChild("PartTele")
+
+		if PT then
+			PT:Destroy()
+		end
 	end
 
 	local Astra = workspace:FindFirstChild("astra")
@@ -2537,80 +2512,36 @@ function StopTween()
 		Astra:Destroy()
 	end
 
-	local PartTele = Char:FindFirstChild("PartTele")
+	if HRP then
 
-	if PartTele then
-		PartTele:Destroy()
-	end
+		local BV = HRP:FindFirstChild("BodyClip")
 
-	for _, v in pairs(Char:GetDescendants()) do
-		if v:IsA("BasePart") then
-			v.CanCollide = true
-			v.AssemblyLinearVelocity = Vector3.zero
-			v.AssemblyAngularVelocity = Vector3.zero
+		if BV then
+			BV:Destroy()
 		end
-	end
 
-	for _, v in pairs(HRP:GetChildren()) do
-		if v:IsA("BodyMover")
-		or v:IsA("BodyVelocity")
-		or v:IsA("AlignPosition")
-		or v:IsA("AlignOrientation")
-		or v:IsA("BodyGyro") then
-			v:Destroy()
-		end
+		HRP.AssemblyLinearVelocity = Vector3.zero
+		HRP.AssemblyAngularVelocity = Vector3.zero
 	end
 
 	if Humanoid then
+		Humanoid.AutoRotate = true
 		Humanoid.PlatformStand = false
-		Humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+		Humanoid:ChangeState(Enum.HumanoidStateType.Running)
 	end
 
-	HRP.Anchored = false
+	if Char then
 
-	HRP.CFrame += Vector3.new(0,3,0)
+		for _, v in pairs(Char:GetDescendants()) do
 
-	local HL = Char:FindFirstChild("AstraHighlight")
-
-	if HL then
-		HL:Destroy()
+			if v:IsA("BasePart") then
+				v.CanCollide = true
+			end
+		end
 	end
 end
 
---// =========================================================
---// HIGHLIGHT
---// =========================================================
-
-local function CreateHighlight()
-
-	if not getgenv().AutoHighlight then
-		return
-	end
-
-	local Char = GetCharacter()
-
-	if not Char then
-		return
-	end
-
-	if Char:FindFirstChild("AstraHighlight") then
-		return
-	end
-
-	local HL = Instance.new("Highlight")
-
-	HL.Name = "AstraHighlight"
-	HL.FillColor = Color3.fromRGB(0,255,100)
-	HL.OutlineColor = Color3.fromRGB(255,255,255)
-	HL.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-
-	HL.Parent = Char
-end
-
---// =========================================================
---// MAIN TWEEN
---// =========================================================
-
+--// MAIN
 function TweenPlayer(Target)
 
 	local Char = GetCharacter()
@@ -2623,8 +2554,6 @@ function TweenPlayer(Target)
 
 	--// STOP
 	if not Target then
-		Tweening = false
-		shouldTween = false
 		StopTween()
 		return
 	end
@@ -2645,11 +2574,6 @@ function TweenPlayer(Target)
 
 		if Near then
 
-			LastThreat = tick()
-
-			Tweening = false
-			shouldTween = false
-
 			StopTween()
 
 			if getgenv().AutoHide then
@@ -2657,54 +2581,28 @@ function TweenPlayer(Target)
 			end
 
 			if getgenv().AutoEscape then
-				game:GetService("TeleportService"):Teleport(game.PlaceId)
+				TeleportService:Teleport(game.PlaceId)
 			end
 
 			return
 		end
 	end
 
-	--// CAMERA DETECTION
-	if getgenv().CameraDetection then
-
-		for _, plr in pairs(Players:GetPlayers()) do
-
-			if plr ~= LocalPlayer then
-
-				if IsLookingAtMe(plr) then
-
-					Tweening = false
-					shouldTween = false
-
-					StopTween()
-
-					if getgenv().AutoHide then
-						HideCharacter()
-					end
-
-					return
-				end
-			end
-		end
-	end
-
 	--// TELEPORTER BYPASS
 	if getgenv().TweenBypass and Distance > 3000 then
 
-		local Teleporter =
+		local TP =
 			GetNearestTeleporter(TargetCFrame)
 
-		if Teleporter then
-			RequestEntrance(Teleporter)
-			task.wait(1)
+		if TP then
+			RequestEntrance(TP)
 		end
 	end
 
-	--// CLOSE RANGE TP
+	--// CLOSE TP
 	if Distance <= 15 then
+
 		HRP.CFrame = TargetCFrame
-		Tweening = false
-		shouldTween = false
 		return
 	end
 
@@ -2727,10 +2625,8 @@ function TweenPlayer(Target)
 
 	PartTele.Parent = Char
 
-	--// ASTRA PART
-	local Astra =
-		workspace:FindFirstChild("astra")
-		or Instance.new("Part")
+	--// ASTRA
+	local Astra = Instance.new("Part")
 
 	Astra.Name = "astra"
 	Astra.Size = Vector3.new(1,1,1)
@@ -2738,6 +2634,7 @@ function TweenPlayer(Target)
 	Astra.Anchored = true
 	Astra.CanCollide = false
 	Astra.CFrame = HRP.CFrame
+
 	Astra.Parent = workspace
 
 	--// BODY VELOCITY
@@ -2748,8 +2645,8 @@ function TweenPlayer(Target)
 			local BV = Instance.new("BodyVelocity")
 
 			BV.Name = "BodyClip"
-			BV.MaxForce = Vector3.new(100000,100000,100000)
-			BV.Velocity = Vector3.new(0,0.1,0)
+			BV.MaxForce = Vector3.new(999999,999999,999999)
+			BV.Velocity = Vector3.new(0,0,0)
 
 			BV.Parent = HRP
 		end
@@ -2758,12 +2655,12 @@ function TweenPlayer(Target)
 	--// SPEED
 	local Speed = getgenv().TweenSpeed or 300
 
-	-- Adaptive Speed
 	if getgenv().AdaptiveSpeed then
 
 		local Ping = 50
 
 		pcall(function()
+
 			Ping =
 				game:GetService("Stats")
 				.Network
@@ -2778,18 +2675,28 @@ function TweenPlayer(Target)
 		end
 	end
 
-	-- Smart Tween
 	if getgenv().SmartTween then
+
 		if Distance <= 250 then
 			Speed *= 2
 		end
 	end
 
-	--// FOLLOW LOOP
-	if FollowConnection then
-		FollowConnection:Disconnect()
+	--// FINAL TARGET
+	local FinalTarget = TargetCFrame
+
+	if getgenv().LegitMovement then
+
+		FinalTarget =
+			TargetCFrame +
+			Vector3.new(
+				math.random(-2,2),
+				0,
+				math.random(-2,2)
+			)
 	end
 
+	--// FOLLOW LOOP
 	FollowConnection =
 		RunService.Heartbeat:Connect(function()
 
@@ -2797,64 +2704,62 @@ function TweenPlayer(Target)
 			return
 		end
 
-		if not Char or not HRP or not Humanoid then
+		if not Char or not HRP then
 			StopTween()
 			return
 		end
 
-		-- AUTO NOCLIP
+		-- Noclip
 		if getgenv().AutoNoclip then
+
 			for _, v in pairs(Char:GetDescendants()) do
+
 				if v:IsA("BasePart") then
 					v.CanCollide = false
 				end
 			end
 		end
 
-		-- FIX HUMANOID
+		-- Fix Spin
 		Humanoid.AutoRotate = false
-		Humanoid.PlatformStand = false
-		Humanoid:ChangeState(Enum.HumanoidStateType.Physics)
 
-			-- POSITION
-		local TargetPos = PartTele.Position
-
-		-- LEGIT OFFSET
-		if getgenv().LegitMovement then
-			TargetPos += Vector3.new(
-				math.random(-2,2),
-				0,
-				math.random(-2,2)
-			)
-		end
-
-		-- SMOOTH FOLLOW
-		HRP.CFrame = CFrame.new(
-			TargetPos,
-			TargetPos + PartTele.CFrame.LookVector
-		)
-
-		-- FIX SPIN
-		HRP.RotVelocity = Vector3.zero
 		HRP.AssemblyAngularVelocity = Vector3.zero
+		HRP.RotVelocity = Vector3.zero
 
-		-- FIX FALL
-		HRP.Velocity = Vector3.zero
+		-- Anti Fall
 		HRP.AssemblyLinearVelocity = Vector3.zero
 
-		-- KEEP HEIGHT
-		if HRP.Position.Y < PartTele.Position.Y - 5 then
+		-- Offset
+		local Offset = Vector3.zero
 
-			HRP.CFrame = CFrame.new(
-				Vector3.new(
-					TargetPos.X,
-					PartTele.Position.Y,
-					TargetPos.Z
-				)
+		if getgenv().AntiCheatBypass then
+
+			Offset = Vector3.new(
+				math.random(-0.15,0.15),
+				0,
+				math.random(-0.15,0.15)
 			)
 		end
 
-		-- DESYNC PROTECTION
+		local NewPos = PartTele.Position + Offset
+
+		-- Keep Height
+		NewPos = Vector3.new(
+			NewPos.X,
+			PartTele.Position.Y,
+			NewPos.Z
+		)
+
+		-- Main Follow
+		HRP.CFrame = CFrame.new(
+			NewPos,
+			NewPos + PartTele.CFrame.LookVector
+		)
+
+		-- Astra Follow
+		Astra.CFrame = PartTele.CFrame
+
+		-- Desync Protection
 		if getgenv().DesyncProtection then
 
 			local Dist =
@@ -2862,51 +2767,9 @@ function TweenPlayer(Target)
 
 			if Dist >= 100 then
 				StopTween()
-				return
 			end
 		end
-
-		Astra.CFrame = PartTele.CFrame
-
 	end)
-
-		--// ANTI CHEAT BYPASS
-		local NewPos
-
-		if getgenv().AntiCheatBypass then
-
-			NewPos = PartTele.Position + Offset
-
-		else
-
-			NewPos = PartTele.Position
-		end
-
-		-- GIỮ ROTATION
-		HRP.CFrame = CFrame.new(NewPos, NewPos + PartTele.CFrame.LookVector)
-
-		-- CHỐNG RỚT
-		HRP.AssemblyLinearVelocity = Vector3.zero
-		HRP.AssemblyAngularVelocity = Vector3.zero
-
-		--// ASTRA FOLLOW
-		Astra.CFrame = PartTele.CFrame
-
-	end
-
-	--// RANDOM TARGET
-	local FinalTarget = TargetCFrame
-
-	if getgenv().SmartTween then
-
-		FinalTarget =
-			TargetCFrame +
-			Vector3.new(
-				math.random(-3,3),
-				0,
-				math.random(-3,3)
-			)
-	end
 
 	--// TWEEN
 	local Tween = TweenService:Create(
@@ -2928,57 +2791,14 @@ function TweenPlayer(Target)
 
 		if State == Enum.PlaybackState.Completed then
 
-			Tweening = false
-			shouldTween = false
+			if HRP then
+				HRP.CFrame = FinalTarget
+			end
 
 			StopTween()
 		end
 	end)
 end
-
---// =========================================================
---// AUTO CLEANUP
---// =========================================================
-
-task.spawn(function()
-
-	while task.wait(1) do
-
-		pcall(function()
-
-			local Char = GetCharacter()
-			local Humanoid = GetHumanoid()
-
-			if not Char or not Humanoid then
-				return
-			end
-
-			if Humanoid.Health <= 0 then
-				StopTween()
-			end
-		end)
-	end
-end)
-
---// =========================================================
---// AFK PROTECTION
---// =========================================================
-
-LocalPlayer.Idled:Connect(function()
-
-	VirtualUser:CaptureController()
-	VirtualUser:ClickButton2(Vector2.new())
-end)
-
---// =========================================================
---// EXAMPLES
---// =========================================================
-
--- TweenPlayer(CFrame.new(0,100,0))
--- TweenPlayer(workspace.Enemies.Bandit.HumanoidRootPart.CFrame)
-
--- STOP:
--- StopTween()
 -- TweenPlayer(nil)-- Vòng lặp Highlight riêng biệt để không gây lag[cite: 2]
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
