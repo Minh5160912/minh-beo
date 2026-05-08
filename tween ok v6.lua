@@ -25,6 +25,136 @@ if executor then
         game.Players.LocalPlayer:Kick("Please use Delta Exploit or PC use hight unc and Sunc or Exploit paid!")
     end
 end
+
+
+-- Hook nhẹ chỉ chặn mấy cái dễ gây ban
+local oldNamecall
+pcall(function()
+    local mt = getrawmetatable(game)
+    if not mt then return end
+    
+    oldNamecall = mt.__namecall
+    setreadonly(mt, false)
+    
+    mt.__namecall = newcclosure(function(self, ...)
+        local method = getnamecallmethod()
+        local args = {...}
+        
+        -- Chỉ chặn remote TeleportDetect (dễ gây ban nhất)
+        if method == "FireServer" and self.Name == "TeleportDetect" then
+            return -- Chặn im lặng
+        end
+        
+        -- Cho phép mọi thứ khác qua
+        return oldNamecall(self, ...)
+    end)
+    
+    setreadonly(mt, true)
+end)
+
+-- Fake movement nhẹ (tránh anti-cheat phát hiện đứng im)
+task.spawn(function()
+    while task.wait(10) do
+        pcall(function()
+            local char = lp.Character
+            if char and char:FindFirstChild("Humanoid") then
+                -- Chỉ fake khi thực sự đứng im
+                if char.Humanoid.MoveDirection.Magnitude < 0.1 then
+                    char.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                    wait(0.05)
+                    char.Humanoid:ChangeState(Enum.HumanoidStateType.Landed)
+                end
+            end
+        end)
+    end
+end)
+-- ==========================================
+-- TẮT DECAL XA (GIẢM VRAM)
+-- ==========================================
+
+task.spawn(function()
+    while task.wait(3) do
+        pcall(function()
+            local char = lp.Character
+            if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+            
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v:IsA("Decal") or v:IsA("Texture") then
+                    if v.Parent and v.Parent:IsA("BasePart") then
+                        local dist = (v.Parent.Position - char.HumanoidRootPart.Position).Magnitude
+                        if dist > 150 then
+                            v.Transparency = 1
+                        else
+                            v.Transparency = 0
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+-- ==========================================
+-- DỌN BỘ NHỚ (CHỐNG TRÀN RAM)
+-- ==========================================
+
+task.spawn(function()
+    while task.wait(60) do
+        pcall(function()
+            collectgarbage("collect")
+        end)
+    end
+end)
+-- ==========================================
+-- CHECK MÁY YẾU - TỰ ĐỘNG ĐIỀU CHỈNH
+-- ==========================================
+
+pcall(function()
+    -- Nếu là máy 32bit hoặc RAM thấp, giảm thêm
+    if syn and syn.crash then
+        targetFPS = 20 -- Giảm thêm cho executor yếu
+    end
+end)
+LowCpu = function()
+		local Y = true;
+		local d = game;
+		local R = d.Workspace;
+		local Q = d.Lighting;
+		local r = R.Terrain;
+		r.WaterWaveSize = 0;
+		r.WaterWaveSpeed = 0;
+		r.WaterReflectance = 0;
+		r.WaterTransparency = 0;
+		Q.GlobalShadows = false;
+		Q.FogEnd = 9000000000.0;
+		Q.Brightness = 0;
+		(settings()).Rendering.QualityLevel = "Level01";
+		for d, R in pairs(d:GetDescendants()) do
+			if R:IsA("Part") or R:IsA("Union") or R:IsA("CornerWedgePart") or R:IsA("TrussPart") then
+				R.Material = "Plastic";
+				R.Reflectance = 0;
+			elseif R:IsA("Decal") or R:IsA("Texture") and Y then
+				R.Transparency = 1;
+			elseif R:IsA("ParticleEmitter") or R:IsA("Trail") then
+				R.Lifetime = NumberRange.new(0);
+			elseif R:IsA("Explosion") then
+				R.BlastPressure = 1;
+				R.BlastRadius = 1;
+			elseif R:IsA("Fire") or R:IsA("SpotLight") or R:IsA("Smoke") or R:IsA("Sparkles") then
+				R.Enabled = false;
+			elseif R:IsA("MeshPart") then
+				R.Material = "Plastic";
+				R.Reflectance = 0;
+				R.TextureID = 10385902758728957;
+			end;
+		end;
+		for Y, d in pairs(Q:GetChildren()) do
+			if d:IsA("BlurEffect") or d:IsA("SunRaysEffect") or d:IsA("ColorCorrectionEffect") or d:IsA("BloomEffect") or d:IsA("DepthOfFieldEffect") then
+				d.Enabled = false;
+			end;
+		end;
+	end;
+	
 local WindUI = (loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua")))();
 local Window = WindUI:CreateWindow({
     Title = "Minh BELL Hub",
@@ -2294,200 +2424,125 @@ spawn(function()
 		end);
 	end);
 end);
-_G.UltraAttack = false
-_G.UltraClick = false
-local Players = game:GetService("Players")
-local VIM = game:GetService("VirtualInputManager")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local VirtualUser = game:GetService("VirtualUser")
-local lp = Players.LocalPlayer
+_G.UltraAttack = true -- Bật/Tắt hiệu ứng tại đây
 
+local RS = game:GetService("ReplicatedStorage")
+local CombatUtil = require(RS.Modules.CombatUtil) -- Module xử lý hiệu ứng
+local Player = game:GetService("Players").LocalPlayer
+
+task.spawn(function()
+    while true do
+        task.wait() -- Vòng lặp chạy liên tục để quét mục tiêu
+        
+        if _G.UltraAttack then
+            local Character = Player.Character
+            if not Character then continue end
+            
+            local Root = Character:FindFirstChild("HumanoidRootPart")
+            local Tool = Character:FindFirstChildOfClass("Tool")
+            if not (Root and Tool) then continue end
+            
+            -- Lấy tên vũ khí để hiển thị hiệu ứng tương ứng
+            local weaponName = CombatUtil:GetWeaponName(Tool)
+            
+            for _, monster in ipairs(workspace.Enemies:GetChildren()) do
+                local mRoot = monster:FindFirstChild("HumanoidRootPart")
+                local mHum = monster:FindFirstChild("Humanoid")
+                
+                -- Kiểm tra quái vật trong phạm vi 60 studs
+                if mRoot and mHum and mHum.Health > 0 and (mRoot.Position - Root.Position).Magnitude <= 100 then
+                    
+                    -- CHỈ GỌI HIỆU ỨNG (Không có FireServer gây damage)[cite: 3]
+                    -- Quái sẽ chớp đỏ hoặc hiển thị hiệu ứng trúng đòn nhưng không mất máu
+                    CombatUtil:ApplyDamageHighlight(monster, Character, weaponName, mRoot)
+                    
+                end
+            end
+        end
+    end
+end)
+---_G.UltraClick = false
+--local Players = game:GetService("Players")
+--local VIM = game:GetService("VirtualInputManager")
+--local ReplicatedStorage = game:GetService("ReplicatedStorage")
+--local VirtualUser = game:GetService("VirtualUser")
+--
 -- Require modules
-local Net = require(ReplicatedStorage.Modules.Net)
-local CombatUtil = require(ReplicatedStorage.Modules.CombatUtil)
+--local Net = require(ReplicatedStorage.Modules.Net)
+--local CombatUtil = require(ReplicatedStorage.Modules.CombatUtil)
 
 -- Remotes
-local hitRemote = ReplicatedStorage.Modules.Net:FindFirstChild("RE/RegisterHit")
-local attackRemote = ReplicatedStorage.Modules.Net:FindFirstChild("RE/RegisterAttack")
+--local hitRemote = ReplicatedStorage.Modules.Net:FindFirstChild("RE/RegisterHit")
+-- attackRemote = ReplicatedStorage.Modules.Net:FindFirstChild("RE/RegisterAttack")
 
 -- ==========================================
 -- CODE CLICK MỚI CỦA BẠN
 -- ==========================================
 
-getgenv()._FastAttackBackup = getgenv()._FastAttackBackup or {}
+--getgenv()._FastAttackBackup = getgenv()._FastAttackBackup or {}
 
 -- config
-local HITBOX = 1000
-local LOOP_DELAY = 0.01
+---local HITBOX = 1000
+--local LOOP_DELAY = 0.01
 
-local function safeRequireWeaponData()
-    local ok, mod = pcall(function()
-        return require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("WeaponData"))
-    end)
-    return ok and mod or nil
-end
+--local function safeRequireWeaponData()
+--    local ok, mod = pcall(function()
+--        return require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("WeaponData"))
+--    end)
+--    return ok and mod or nil
+--end
 
-local WeaponData = safeRequireWeaponData()
+--local WeaponData = safeRequireWeaponData()
 
-local function findAttackMelee()
-    if getgenv().attackMelee and typeof(getgenv().attackMelee) == "function" then
-        return getgenv().attackMelee
-    end
+--local function findAttackMelee()
+--    if getgenv().attackMelee and typeof(getgenv().attackMelee) == "function" then
+--        return getgenv().attackMelee
+--    end
+--
+--    if typeof(getgc) ~= "function" or typeof(debug) ~= "table" or typeof(debug.getinfo) ~= "function" then
+--        return nil
+--    end
+--
+--   for _, v in next, getgc(true) do
+--        if typeof(v) == "function" then
+--            local ok, info = pcall(debug.getinfo, v)
+--            if ok and info and info.name == "attackMelee" then
+--                getgenv().attackMelee = v
+--                return v
+--            end
+--        end
+--    end
+--    return nil
+--end
 
-    if typeof(getgc) ~= "function" or typeof(debug) ~= "table" or typeof(debug.getinfo) ~= "function" then
-        return nil
-    end
+--local function cacheUpvalueTargets(fn)
+--    if getgenv()._FastAttackBackup._uv_cached then return end
+--    getgenv()._FastAttackBackup._uv_cached = true
+--    getgenv()._FastAttackBackup._uv_idx = {}
+---
+--    if typeof(getupvalues) ~= "function" then return end
+--
+--    local ok, uvs = pcall(getupvalues, fn)
+--    if not ok or type(uvs) ~= "table" then return end
+--
+--    for i, v in next, uvs do
+--        local t = typeof(v)
+--        if t == "number" then
+--            if v > 0 and v < 5 then
+--                table.insert(getgenv()._FastAttackBackup._uv_idx, {i = i, kind = "number"})
+--            end
+--        elseif t == "boolean" then
+---            end
+--        end
+--    end
+--end
+--
 
-    for _, v in next, getgc(true) do
-        if typeof(v) == "function" then
-            local ok, info = pcall(debug.getinfo, v)
-            if ok and info and info.name == "attackMelee" then
-                getgenv().attackMelee = v
-                return v
-            end
-        end
-    end
-    return nil
-end
-
-local function cacheUpvalueTargets(fn)
-    if getgenv()._FastAttackBackup._uv_cached then return end
-    getgenv()._FastAttackBackup._uv_cached = true
-    getgenv()._FastAttackBackup._uv_idx = {}
-
-    if typeof(getupvalues) ~= "function" then return end
-
-    local ok, uvs = pcall(getupvalues, fn)
-    if not ok or type(uvs) ~= "table" then return end
-
-    for i, v in next, uvs do
-        local t = typeof(v)
-        if t == "number" then
-            if v > 0 and v < 5 then
-                table.insert(getgenv()._FastAttackBackup._uv_idx, {i = i, kind = "number"})
-            end
-        elseif t == "boolean" then
-            if v == true then
-                table.insert(getgenv()._FastAttackBackup._uv_idx, {i = i, kind = "boolean"})
-            end
-        end
-    end
-end
-
-local function applyFastUpvalues(fn)
-    if typeof(setupvalue) ~= "function" then return end
-    local idxs = getgenv()._FastAttackBackup._uv_idx
-    if type(idxs) ~= "table" then return end
-
-    for _, it in ipairs(idxs) do
-        if it.kind == "number" then
-            pcall(setupvalue, fn, it.i, 0)
-        elseif it.kind == "boolean" then
-            pcall(setupvalue, fn, it.i, false)
-        end
-    end
-end
-
--- Vòng lặp click mới
-task.spawn(function()
-    repeat task.wait() until game:IsLoaded() and lp
-
-    while task.wait(0.2) do
-        local fn = findAttackMelee()
-        if fn then
-            cacheUpvalueTargets(fn)
-            break
-        end
-    end
-
-    while task.wait(LOOP_DELAY) do
-        if _G.UltraClick then
-            pcall(function()
-                local attackFn = getgenv().attackMelee
-                if typeof(attackFn) ~= "function" then
-                    attackFn = findAttackMelee()
-                    if typeof(attackFn) ~= "function" then
-                        return
-                    end
-                end
-
-                local char = lp.Character
-                if not char then return end
-
-                local tool = char:FindFirstChildOfClass("Tool")
-                if not tool then return end
-
-                if not WeaponData then
-                    WeaponData = safeRequireWeaponData()
-                    if not WeaponData then return end
-                end
-
-                local weaponName = tool:GetAttribute("WeaponName")
-                if not weaponName then return end
-
-                local w = WeaponData[weaponName]
-                if not w then return end
-
-                if getgenv()._FastAttackBackup.Hitbox == nil then
-                    getgenv()._FastAttackBackup.Hitbox = w.HitboxMagnitude
-                end
-
-                applyFastUpvalues(attackFn)
-                w.HitboxMagnitude = HITBOX
-
-                pcall(function()
-                    VIM:SendMouseButtonEvent(0, 0, 0, true, game, 0)
-                    VIM:SendMouseButtonEvent(0, 0, 0, false, game, 0)
-                end)
-                pcall(attackFn)
-            end)
-        end
-    end
-end)
 
 -- ==========================================
 -- ULTRA ATTACK GỐC
 -- ==========================================
 
-local function FastAttack(target)
-    local char = lp.Character
-    if not char then return end
-    local hrp = target:FindFirstChild("HumanoidRootPart")
-    local hum = target:FindFirstChild("Humanoid")
-    if not hrp or not hum or hum.Health <= 0 then return end
-    local tool = char:FindFirstChildOfClass("Tool")
-    if not tool then return end
-    pcall(function()
-        local weaponName = CombatUtil:GetWeaponName(tool)
-        local uuid = tostring(lp.UserId):sub(2,4) .. tostring(math.random(10000,99999))
-        local hitData = {{target, hrp}}
-        hitRemote:FireServer(hrp, hitData, nil, nil, uuid)
-        CombatUtil:ApplyDamageHighlight(target, char, weaponName, hrp, nil)
-    end)
-end
-local function GetMobs()
-    local mobs = {}
-    for _, mob in ipairs(workspace.Enemies:GetChildren()) do
-        if mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-            table.insert(mobs, mob)
-        end
-    end
-    return mobs
-end
-
-task.spawn(function()
-    while task.wait(0.1) do
-        if _G.UltraAttack then
-            pcall(function()
-                local mobs = GetMobs()
-                if #mobs > 0 then
-                    if attackRemote then attackRemote:FireServer() end
-                    for _, mob in ipairs(mobs) do FastAttack(mob) end
-                end
-            end)
-        end
-    end
-end)
 
 -- ============================================================
 -- ĐÁNH NHANH: HP quái còn 25%, tự động kích hoạt hiệu ứng
@@ -2572,79 +2627,10 @@ local Character = Player.Character or Player.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
-local ply = Players
-local replicated = ReplicatedStorage
-local RunSer = RunService
-local vim1 = VirtualInputManager
-local vim2 = VirtualUser
-local TW = TweenService
-local plr = Player
-local Root = HumanoidRootPart
-function GetWeaponInventory(p193)
-    local v194, v195, v196 = pairs(game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("getInventory"))
-    while true do
-        local v197
-        v196, v197 = v194(v195, v196)
-        if v196 == nil then
-            break
-        end
-        if type(v197) == "table" and (v197.Type == "Sword" and v197.Name == p193) then
-            return true
-        end
-    end
-    return false
-end
-local vu198 = game.Players.LocalPlayer
-
-function AttackNoCoolDown()
-    local char = plr.Character
-    if not char then return end
-
-    local tool = char:FindFirstChildOfClass("Tool")
-    if not tool then return end
-
-    local enemies = game:GetService("Workspace").Enemies:GetChildren()
-    local myPos = char:GetPivot().Position
-    local targetMobs = {}
-    local targetHead = nil
-
-    for _, mob in pairs(enemies) do
-        local hum = mob:FindFirstChild("Humanoid")
-        local hrp = mob:FindFirstChild("HumanoidRootPart")
-        local head = mob:FindFirstChild("Head")
-
-        if hum and hum.Health > 0 and hrp and head and not mob:GetAttribute("IsBoat") then
-            if (myPos - head.Position).Magnitude <= 60 then
-                table.insert(targetMobs, {mob, head})
-                targetHead = head
-            end
-        end
-    end
-
-    if not targetHead then return end
-
-    pcall(function()
-        local netMods = game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Net")
-        local attackRE = netMods:WaitForChild("RE/RegisterAttack")
-        local hitRE = netMods:WaitForChild("RE/RegisterHit")
-
-        if #targetMobs > 0 then
-            attackRE:FireServer(1e-9)
-            hitRE:FireServer(targetHead, targetMobs)
-        end
-    end)
-end
 
 
-function to(p240)
-    repeat
-        wait(_G.Fast_Delay)
-        game.Players.LocalPlayer.Character.Humanoid:ChangeState(15)
-        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = p240
-        task.wait()
-        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = p240
-    until (p240.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude <= 2000
-end
+
+
 local env = (getgenv or getrenv or getfenv)();
 local rs = game:GetService("ReplicatedStorage");
 local players = game:GetService("Players");
@@ -7630,7 +7616,6 @@ AttackAuraToggle = Tabs.SettingsTab:Toggle({
     Callback = function(state)
         _G.Settings.Items["Ultra Attack"] = state;
         _G.UltraAttack = state;
-        _G.UltraClick = state;
         (getgenv()).SaveSetting();
     end
 });
