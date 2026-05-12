@@ -25,7 +25,11 @@ if executor then
         game.Players.LocalPlayer:Kick("Please use Delta Exploit or PC use hight unc and Sunc or Exploit paid!")
     end
 end
-
+lp.Idled:Connect(function()
+    VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    wait(1)
+    VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+end)
 
 -- Hook nhẹ chỉ chặn mấy cái dễ gây ban
 local oldNamecall
@@ -348,6 +352,120 @@ Tabs.ConfigTab:Keybind({
         Window:SetToggleKey(Enum.KeyCode[v])
     end
 });
+Tabs.ConfigTab:Section({  Title = "Themes ", Icon = "app-window" })
+
+
+local themeValues = {}
+for name, _ in pairs(WindUI:GetThemes()) do
+    table.insert(themeValues, name)
+end
+
+local themeDropdown = Tabs.ConfigTab:Dropdown({
+    Title = "Select Theme",
+    Multi = false,
+    AllowNone = false,
+    Value = nil,
+    Values = themeValues,
+    Callback = function(theme)
+        WindUI:SetTheme(theme)
+    end
+})
+themeDropdown:Select(WindUI:GetCurrentTheme())
+
+    
+
+Tabs.ConfigTab:Dropdown({
+    Title = "Themes",
+    Values = { "None", "Furina", "Huh", "Wifefu", "Cute" },
+    Value = "None",
+    Callback = function(Value)
+        if Value == "None" then
+            Window:SetBackgroundImage("") -- xￃﾳa hￃﾬnh n￡ﾻﾁn
+             -- gi￡ﾻﾯ n￡ﾻﾁn m￡ﾻﾝ nh￡ﾺﾹ
+        elseif Value == "Furina" then
+            Window:SetBackgroundImage("rbxassetid://118176919857056") -- n￡ﾻﾁn ￄﾑￆﾡn gi￡ﾺﾣn
+            Window:SetBackgroundTransparency(0.15)
+        elseif Value == "Huh" then
+            Window:SetBackgroundImage("rbxassetid://94945612534497") -- nￃﾺi tr￡ﾻﾝi
+            Window:SetBackgroundTransparency(0.15)
+        elseif Value == "Wifefu" then
+            Window:SetBackgroundImage("rbxassetid://86067606419427") -- neon sￃﾡng
+            Window:SetBackgroundTransparency(0.2)
+        elseif Value == "Cute" then
+            Window:SetBackgroundImage("rbxassetid://102321121807148") -- r￡ﾻﾫng t￡ﾻﾑi
+            Window:SetBackgroundTransparency(0.2)
+        end
+    end
+})
+
+Tabs.ConfigTab:Toggle({
+    Title = "Toggle Window Transparency",
+    Callback = function(e)
+        Window:ToggleTransparency(e)
+    end,
+    Value = WindUI:GetTransparency()
+})
+
+
+Tabs.ConfigTab:Section({ Title = "RGB Name UI ", Icon = "chart-no-axes-gantt" })
+
+
+local rgbSpeed = 1
+local rgbEnabled = true
+local hue = 0
+local lastColor = Color3.new(1, 1, 1)
+
+-- Toggle bật/tắt hiệu ứng cầu vồng
+Tabs.ConfigTab:Toggle({
+    Title = " RGB Name UI",
+    Value = rgbEnabled,
+    Callback = function(v)
+        rgbEnabled = v
+        if v then
+            WindUI:Notify({
+                Title = " RGB Title",
+                Content = " RGB On!",
+                Duration = 2
+            })
+        else
+            WindUI:Notify({
+                Title = " RGB Title",
+                Content = " RGB Off.",
+                Duration = 2
+            })
+        end
+    end
+})
+
+
+
+-- Slider chỉnh tốc độ hiệu ứng
+Tabs.ConfigTab:Slider({
+    Title = "  RGB Speed",
+    Value = { Min = 1, Max = 5, Rounding = 1, Default = rgbspeed },
+    Callback = function(v)
+        rgbSpeed = v
+        WindUI:Notify({
+            Title = " RGB Speed",
+            Content = "RGB Speed: " .. tostring(v),
+            Duration = 2
+        })
+    end
+})
+
+task.spawn(function()
+    while task.wait(0.05) do
+        if rgbEnabled then
+            hue = (hue + 0.01 * rgbSpeed) % 1
+            lastColor = Color3.fromHSV(hue, 1, 1)
+        end
+        -- luôn hiển thị màu cuối cùng dù có tắt
+        Window:SetTitle(string.format(
+            "<font color='#%02X%02X%02X'>99 Night in Forest |  Minh BELL </font>",
+            lastColor.R * 255, lastColor.G * 255, lastColor.B * 255
+        ))
+    end
+end)
 Window:SelectTab(1);
 _G.StopTween = false
 _G.Settings = {
@@ -2269,130 +2387,364 @@ local attckfuntion = (
 -- Biến kiểm soát trạng thái
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+
 local CurrentTween = nil
-local shouldTween = false
+local isTeleporting = false
 
-function TweenPlayer(pos)
-    local char = LocalPlayer.Character
-    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-    local hrp = char.HumanoidRootPart
+local World1 = game.PlaceId == 2753915549
+local World2 = game.PlaceId == 4442272183
+local World3 = game.PlaceId == 7449423635
 
-    -- 🔴 TẮT / CLEANUP
-    if not pos then 
-        shouldTween = false
+-- 🟢 CHECK WATER
+function isInWater(pos)
+    return pos.Position.Y < -60
+end
+
+-- 🟢 CHECK NEAREST TELEPORT
+function CheckNearestTeleporter(target)
+
+    if isInWater(target) then
+        return
+    end
+
+    local targetPosition = target.Position
+    local minDist = math.huge
+    local chosenTeleport = nil
+
+    local TableLocations = {}
+
+    if World1 then
+
+        TableLocations = {
+            ["Sky3"] = Vector3.new(-7894, 5547, -380),
+            ["Sky3Exit"] = Vector3.new(-4607, 874, -1667),
+            ["UnderWater"] = Vector3.new(61163, 11, 1819),
+            ["Underwater City"] = Vector3.new(61165, 0, 1897),
+            ["Pirate Village"] = Vector3.new(-1242, 4, 3901),
+            ["UnderwaterExit"] = Vector3.new(4050, -1, -1814)
+        }
+
+    elseif World2 then
+
+        TableLocations = {
+            ["Swan Mansion"] = Vector3.new(-390, 332, 673),
+            ["Swan Room"] = Vector3.new(2285, 15, 905),
+            ["Cursed Ship"] = Vector3.new(923, 126, 32852),
+            ["Zombie Island"] = Vector3.new(-6509, 83, -133)
+        }
+
+    elseif World3 then
+
+        TableLocations = {
+            ["Floating Turtle"] = Vector3.new(-12462, 375, -7552),
+            ["Hydra Island"] = Vector3.new(5657, 1013, -335),
+            ["Mansion"] = Vector3.new(-12462, 375, -7552),
+            ["Castle"] = Vector3.new(-5036, 315, -3179),
+            ["Dimensional Shift"] = Vector3.new(-2097, 4776, -15013),
+            ["Beautiful Pirate"] = Vector3.new(5319, 23, -93),
+            ["Beautiful Room"] = Vector3.new(5314, 22, -125),
+            ["Temple of Time"] = Vector3.new(28286, 14897, 103),
+        }
+    end
+
+    for _, v in pairs(TableLocations) do
+
+        local dist = (v - targetPosition).Magnitude
+
+        if dist < minDist then
+            minDist = dist
+            chosenTeleport = v
+        end
+    end
+
+    if minDist <=
+        (targetPosition - HumanoidRootPart.Position).Magnitude then
+
+        return chosenTeleport
+    end
+end
+
+-- 🟢 REQUEST ENTRANCE
+function requestEntrance(teleportPos)
+
+    pcall(function()
+        Remotes.CommF_:InvokeServer(
+            "requestEntrance",
+            teleportPos
+        )
+    end)
+
+    task.wait(0.5)
+end
+
+-- 🟢 MAIN TWEEN
+function TweenPlayer(Pos)
+
+    Character =
+        LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+    Humanoid =
+        Character:WaitForChild("Humanoid")
+
+    HumanoidRootPart =
+        Character:WaitForChild("HumanoidRootPart")
+
+    if not Pos then
+	
+		shouldTween = false
+        isTeleporting = false
 
         if CurrentTween then
             CurrentTween:Cancel()
             CurrentTween = nil
         end
 
-        local astra = workspace:FindFirstChild("astra")
-        if astra then astra:Destroy() end
-
-        if char and hrp then
-            for _, v in pairs(char:GetDescendants()) do
-                if v:IsA("BasePart") then
-                    v.CanCollide = true
-                    v.AssemblyLinearVelocity = Vector3.zero
-                end
-            end
-
-            hrp.Anchored = false
-
-            for _, v in pairs(hrp:GetChildren()) do
-                if v:IsA("BodyMover") or v:IsA("AlignPosition") or v:IsA("AlignOrientation") then
-                    v:Destroy()
-                end
-            end
-
-            local humanoid = char:FindFirstChildOfClass("Humanoid")
-            if humanoid then
-                humanoid.PlatformStand = false
-                humanoid:ChangeState(Enum.HumanoidStateType.Running)
-            end
-
-            hrp.CFrame = hrp.CFrame + Vector3.new(0, 3, 0)
+        if Character:FindFirstChild("PartTele") then
+            Character.PartTele:Destroy()
         end
 
-        return 
+        for _, v in pairs(Character:GetDescendants()) do
+            if v:IsA("BasePart") then
+                v.CanCollide = true
+                v.AssemblyLinearVelocity = Vector3.zero
+                v.AssemblyAngularVelocity = Vector3.zero
+            end
+        end
+
+        return
     end
 
-    local targetCFrame = typeof(pos) == "CFrame" and pos or CFrame.new(pos)
-    local distance = (hrp.Position - targetCFrame.Position).Magnitude
-    local speed = (_G.Settings.Setting and _G.Settings.Setting["Player Tween Speed"]) or 300
+    if Humanoid.Health <= 0 then
+        return
+    end
 
+    local Distance =
+        (Pos.Position - HumanoidRootPart.Position).Magnitude
+
+    -- 🟢 NEAREST TELEPORTER
+    local nearestTeleport =
+        CheckNearestTeleporter(Pos)
+
+    if nearestTeleport then
+
+        requestEntrance(nearestTeleport)
+
+        task.wait(0.5)
+    end
+
+    -- 🟢 CANCEL OLD TWEEN
     if CurrentTween then
         CurrentTween:Cancel()
     end
 
-    hrp.Anchored = false
-
-    if distance < 15 then
-        hrp.CFrame = targetCFrame
-        shouldTween = false
+    -- 🟢 TP CLOSE
+    if Distance < 15 then
+        HumanoidRootPart.CFrame = Pos
         return
     end
 
-    shouldTween = true
+    -- 🟢 CREATE PART TELE
+    local PartTele =
+        Character:FindFirstChild("PartTele")
 
-    -- 🟢 ASTRA BLOCK
-    local block = workspace:FindFirstChild("astra") or Instance.new("Part")
-    block.Name = "astra"
-    block.Size = Vector3.new(1,1,1)
-    block.Anchored = true
-    block.CanCollide = false
-    block.Transparency = 1
-    block.Parent = workspace
-    block.CFrame = hrp.CFrame
+    if not PartTele then
 
-    -- Follow
-    task.spawn(function()
-        while shouldTween and block and block.Parent do
-            task.wait()
-            if char and hrp then
-                hrp.CFrame = block.CFrame
+        PartTele = Instance.new("Part")
 
-                for _, v in pairs(char:GetChildren()) do
+        PartTele.Name = "PartTele"
+        PartTele.Size = Vector3.new(10,1,10)
+
+        PartTele.Anchored = true
+        PartTele.Transparency = 1
+        PartTele.CanCollide = false
+
+        PartTele.CFrame = HumanoidRootPart.CFrame
+        PartTele.Parent = Character
+
+        PartTele:GetPropertyChangedSignal("CFrame"):Connect(function()
+
+            if not isTeleporting then
+                return
+            end
+
+            if Character
+            and HumanoidRootPart
+            and PartTele then
+
+                HumanoidRootPart.CFrame =
+                    PartTele.CFrame
+
+                -- 🟢 NOCLIP
+                for _, v in pairs(Character:GetDescendants()) do
                     if v:IsA("BasePart") then
                         v.CanCollide = false
                     end
                 end
+
+                -- 🟢 FIX VELOCITY
+                HumanoidRootPart.AssemblyLinearVelocity =
+                    Vector3.zero
+
+                HumanoidRootPart.AssemblyAngularVelocity =
+                    Vector3.zero
+
+                -- 🟢 FIX WATER
+                if HumanoidRootPart.Position.Y
+                    < PartTele.Position.Y - 8 then
+
+                    HumanoidRootPart.CFrame =
+                        PartTele.CFrame + Vector3.new(0,3,0)
+                end
+            end
+        end)
+    end
+
+    isTeleporting = true
+	shouldTween = true
+    local Speed =
+        (_G.Settings
+        and _G.Settings.Setting
+        and _G.Settings.Setting["Player Tween Speed"])
+        or _G.PlayerTweenSpeed
+        or 300
+
+    -- 🟢 SMART TWEEN
+    local TweenTime = Distance / Speed
+
+    if Distance < 150 then
+        TweenTime *= 0.8
+    end
+
+    if Distance < 80 then
+        TweenTime *= 0.7
+    end
+
+    if Distance < 40 then
+        TweenTime *= 0.5
+    end
+
+    local TweenInfo_ =
+        TweenInfo.new(
+            TweenTime,
+            Enum.EasingStyle.Linear
+        )
+
+    CurrentTween =
+        TweenService:Create(
+            PartTele,
+            TweenInfo_,
+            {
+                CFrame = Pos
+            }
+        )
+
+    CurrentTween:Play()
+
+    CurrentTween.Completed:Connect(function(state)
+
+        if state == Enum.PlaybackState.Completed then
+
+            isTeleporting = false
+			shouldTween = false
+
+            if PartTele then
+                PartTele:Destroy()
             end
         end
     end)
+end
 
-    local tweenInfo = TweenInfo.new(distance / speed, Enum.EasingStyle.Linear)
-    CurrentTween = TweenService:Create(block, tweenInfo, {CFrame = targetCFrame})
-    CurrentTween:Play()
+-- 🟢 DIRECT TWEEN
+function TweenPlayer2(pos)
 
-    CurrentTween.Completed:Connect(function()
-        shouldTween = false
-    end)
+	local distance =
+        (HumanoidRootPart.Position - pos.Position).Magnitude
+
+	local time =
+        distance / ((_G.PlayerTweenSpeed) or 300)
+
+	local tweenInfo =
+        TweenInfo.new(
+            time,
+            Enum.EasingStyle.Linear,
+            Enum.EasingDirection.Out
+        )
+
+	local tween =
+        TweenService:Create(
+            HumanoidRootPart,
+            tweenInfo,
+            {
+                CFrame = pos
+            }
+        )
+
+	tween:Play()
+
+	local stoppos = {}
+
+	function stoppos:Stop()
+		tween:Cancel()
+	end
+
+	return stoppos
 end
 
 -- Vòng lặp Highlight riêng biệt để không gây lag[cite: 2]
 task.spawn(function()
-    while task.wait(0.1) do
+
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer
+
+    while task.wait(0.15) do
+
         pcall(function()
-            local char = game.Players.LocalPlayer.Character
-            if not char then return end
-            
-            local hl = char:FindFirstChild("AstraHighlight")
+
+            local char = LocalPlayer.Character
+            if not char then
+                return
+            end
+
+            local hl =
+                char:FindFirstChild("AstraHighlight")
 
             if shouldTween then
+
                 if not hl then
+
                     hl = Instance.new("Highlight")
+
                     hl.Name = "AstraHighlight"
-                    hl.FillColor = Color3.fromRGB(2, 197, 60)
-                    hl.OutlineColor = Color3.fromRGB(255,255,255)
-                    hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+
+                    hl.FillColor =
+                        Color3.fromRGB(2,197,60)
+
+                    hl.OutlineColor =
+                        Color3.fromRGB(255,255,255)
+
+                    hl.FillTransparency = 0.35
+                    hl.OutlineTransparency = 0
+
+                    hl.DepthMode =
+                        Enum.HighlightDepthMode.AlwaysOnTop
+
                     hl.Parent = char
                 end
+
                 hl.Enabled = true
+
             elseif hl then
-                hl:Destroy()
+
+                hl.Enabled = false
+
             end
         end)
     end
