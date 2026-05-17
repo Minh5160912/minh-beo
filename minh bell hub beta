@@ -2374,107 +2374,505 @@ local attckfuntion = (
 -- SERVICES
 -- ==========================================
 --
-
---
--- ==========================================
--- HÀM TWEEN PLAYER (TP 2) + BYPASS TP
--- ==========================================
--- Chuyển đổi từ hệ thống cũ sang tween astra.lua
--- Biến kiểm soát trạng thái
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+
 local CurrentTween = nil
+local isTeleporting = false
 local shouldTween = false
 
-local block = Instance.new("Part", workspace)
-block.Size = Vector3.new(1, 1, 1)
-block.Name = "Rip_Indra"
-block.Anchored = true
-block.CanCollide = false
-block.CanTouch = false
-block.Transparency = 1
-local blockfind = workspace:FindFirstChild(block.Name)
-if blockfind and blockfind ~= block then blockfind:Destroy() end
-task.spawn(function()while task.wait()do if block and block.Parent==workspace then if shouldTween then getgenv().OnFarm=true else getgenv().OnFarm=false end else getgenv().OnFarm=false end end end)
-task.spawn(function()local a=game.Players.LocalPlayer;repeat task.wait()until a.Character and a.Character.PrimaryPart;block.CFrame=a.Character.PrimaryPart.CFrame;while task.wait()do pcall(function()if getgenv().OnFarm then if block and block.Parent==workspace then local b=a.Character and a.Character.PrimaryPart;if b and(b.Position-block.Position).Magnitude<=200 then b.CFrame=block.CFrame else block.CFrame=b.CFrame end end;local c=a.Character;if c then for d,e in pairs(c:GetChildren())do if e:IsA("BasePart")then e.CanCollide=false end end end else local c=a.Character;if c then for d,e in pairs(c:GetChildren())do if e:IsA("BasePart")then e.CanCollide=true end end end end end)end end)
-tweenplayer = function(target)
+local World1 = game.PlaceId == 2753915549
+local World2 = game.PlaceId == 4442272183
+local World3 = game.PlaceId == 7449423635
 
-  local character = plr.Character
-  if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-  local rootPart = character.HumanoidRootPart
-  local distance = (target.Position - rootPart.Position).Magnitude
-  local tweenInfo = TweenInfo.new(distance / 300, Enum.EasingStyle.Linear)
-  local tween = game:GetService("TweenService"):Create(block, tweenInfo, {CFrame = target})    
-  if plr.Character.Humanoid.Sit == true then
-    block.CFrame = CFrame.new(block.Position.X, target.Y, block.Position.Z)
-  end  
-  tween:Play()    
-  task.spawn(function() while tween.PlaybackState == Enum.PlaybackState.Playing do if not shouldTween then tween:Cancel() break end task.wait(0.1) end end)
+-- ====================================================================
+-- CẤU HÌNH BYPASS TP
+-- ====================================================================
+getgenv().PMT_MAX_STEP_DIST = getgenv().PMT_MAX_STEP_DIST or 9000
+getgenv().PMT_HOLD_TIME = getgenv().PMT_HOLD_TIME or 2
+getgenv().PMT_HOLD_STEP = getgenv().PMT_HOLD_STEP or 0.03
+getgenv().PMT_RESPAWN_TIMEOUT = getgenv().PMT_RESPAWN_TIMEOUT or 7
+getgenv().PMT_SKIP_IF_NEAR = getgenv().PMT_SKIP_IF_NEAR or 2000
+
+local IslandCF = {
+    -- Sea 1
+    ["WindMill"] = CFrame.new(979.799, 16.516, 1429.047),
+    ["Marine"] = CFrame.new(-2566.43, 6.856, 2045.256),
+    ["Middle Town"] = CFrame.new(-690.331, 15.094, 1582.238),
+    ["Jungle"] = CFrame.new(-1612.796, 36.852, 149.128),
+    ["Pirate Village"] = CFrame.new(-1181.309, 4.751, 3803.546),
+    ["Desert"] = CFrame.new(944.158, 20.92, 4373.3),
+    ["Snow Island"] = CFrame.new(1347.807, 104.668, -1319.737),
+    ["MarineFord"] = CFrame.new(-4914.821, 50.964, 4281.028),
+    ["Colosseum"] = CFrame.new(-1427.62, 7.288, -2792.772),
+    ["Sky Island 1"] = CFrame.new(-4869.103, 733.461, -2667.018),
+    ["Sky Island 2"] = CFrame.new(-11.311, 29.277, 2771.522),
+    ["Sky Island 3"] = CFrame.new(-483.734, 332.038, 595.327),
+    ["Prison"] = CFrame.new(4875.33, 5.652, 734.85),
+    ["Magma Village"] = CFrame.new(-5247.716, 12.884, 8504.969),
+    ["Under Water Island"] = CFrame.new(61163.852, 11.68, 1819.784),
+    ["Fountain City"] = CFrame.new(5127.128, 59.501, 4105.446),
+
+    -- Sea 2
+    ["The Cafe"] = CFrame.new(-380.479, 77.22, 255.826),
+    ["Frist Spot"] = CFrame.new(-9515.372, 164.006, 5786.061),
+    ["Dark Area"] = CFrame.new(3780.03, 22.652, -3498.586),
+    ["Flamingo Mansion"] = CFrame.new(-3032.764, 317.897, -10075.373),
+    ["Flamingo Room"] = CFrame.new(2284.414, 15.152, 875.725),
+    ["Green Zone"] = CFrame.new(-2448.53, 73.016, -3210.631),
+    ["Factory"] = CFrame.new(424.127, 211.162, -427.54),
+    ["Colossuim"] = CFrame.new(-1503.622, 219.796, 1369.31),
+    ["Zombie Island"] = CFrame.new(-5622.033, 492.196, -781.786),
+    ["Two Snow Mountain"] = CFrame.new(753.143, 408.236, -5274.615),
+    ["Punk Hazard"] = CFrame.new(-6127.654, 15.952, -5040.286),
+    ["Cursed Ship"] = CFrame.new(923.402, 125.057, 32885.875),
+    ["Ice Castle"] = CFrame.new(6148.412, 294.387, -6741.117),
+    ["Forgotten Island"] = CFrame.new(2681.274, 1682.809, -7190.985),
+
+    -- Sea 3
+    ["Sea castle"] = CFrame.new(-5496.452, 313.809, -2857.703),
+    ["Mini Sky Island"] = CFrame.new(-288.741, 49326.316, -35248.594),
+    ["Great Tree"] = CFrame.new(2681.274, 1682.809, -7190.985),
+    ["Port Town"] = CFrame.new(-226.751, 20.603, 5538.34),
+    ["Hydra Island"] = CFrame.new(5291.249, 1005.443, 393.762),
+    ["Mansion"] = CFrame.new(-12633.672, 459.521, -7425.463),
+    ["Haunted Castle"] = CFrame.new(-9366.803, 141.366, 5443.941),
+    ["Ice Cream Island"] = CFrame.new(-902.568, 79.932, -10988.848),
+    ["Peanut Island"] = CFrame.new(-2062.748, 50.474, -10232.568),
+    ["Cake Island"] = CFrame.new(-1884.775, 19.328, -11666.897),
+    ["Cocoa Island"] = CFrame.new(87.943, 73.555, -12319.465),
+    ["Candy Island"] = CFrame.new(-1014.424, 149.111, -14555.963),
+    ["Tiki Outpost"] = CFrame.new(-16218.683, 9.086, 445.618),
+    ["Dragon Dojo"] = CFrame.new(5743.319, 1206.91, 936.011),
+}
+
+local Alias = {
+    ["MiniSky"] = "Mini Sky Island",
+    ["Colosseum"] = "Colosseum",
+    ["Colossuim"] = "Colossuim",
+}
+
+local WorldIslands = {
+    World1 = {"WindMill","Marine","Middle Town","Jungle","Pirate Village","Desert","Snow Island","MarineFord","Colosseum","Sky Island 1","Sky Island 2","Sky Island 3","Prison","Magma Village","Under Water Island","Fountain City"},
+    World2 = {"The Cafe","Frist Spot","Dark Area","Flamingo Mansion","Flamingo Room","Green Zone","Factory","Colossuim","Zombie Island","Two Snow Mountain","Punk Hazard","Cursed Ship","Ice Castle","Forgotten Island"},
+    World3 = {"Sea castle","Mini Sky Island","Great Tree","Port Town","Hydra Island","Mansion","Haunted Castle","Ice Cream Island","Peanut Island","Cake Island","Cocoa Island","Candy Island","Tiki Outpost","Dragon Dojo"},
+}
+
+local _STOP, _RUN = false, false
+
+-- ====================================================================
+-- HÀM HỖ TRỢ BYPASS
+-- ====================================================================
+local function getWorldKey()
+    if World1 then return "World1" end
+    if World2 then return "World2" end
+    if World3 then return "World3" end
+    return "World1"
 end
-TeleportToTarget = function(targetCFrame) if (targetCFrame.Position - plr.Character.HumanoidRootPart.Position).Magnitude > 1000 then _tp(targetCFrame)else _tp(targetCFrame)end end
-notween = function(p) plr.Character.HumanoidRootPart.CFrame = p end
-function BTP(p)
-    local player = game.Players.LocalPlayer
-    local humanoidRootPart = player.Character.HumanoidRootPart
-    local humanoid = player.Character.Humanoid
-    local playerGui = player.PlayerGui.Main
-    local targetPosition = p.Position
-    local lastPosition = humanoidRootPart.Position
-    repeat
-        humanoid.Health = 0
-        humanoidRootPart.CFrame = p
-        playerGui.Quest.Visible = false
-        if (humanoidRootPart.Position - lastPosition).Magnitude > 1 then
-            lastPosition = humanoidRootPart.Position
-            humanoidRootPart.CFrame = p
+
+local function normName(name)
+    if type(name) ~= "string" then return nil end
+    name = name:gsub("^%s+", ""):gsub("%s+$", "")
+    if Alias[name] then name = Alias[name] end
+    return name
+end
+
+local function dist(a, b) return (a - b).Magnitude end
+
+local function GetChar()
+    local c = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local hrp = c:WaitForChild("HumanoidRootPart", 10)
+    local hum = c:FindFirstChildOfClass("Humanoid")
+    if not (hrp and hum) then return end
+    return c, hrp, hum
+end
+
+local function buildNodes()
+    local wk = getWorldKey()
+    local list = WorldIslands[wk] or {}
+    local nodes = {}
+    for _, n in ipairs(list) do
+        if IslandCF[n] then nodes[#nodes+1] = n end
+    end
+    return nodes
+end
+
+local function nearestIsland(pos, nodes)
+    local best, bestD
+    for _, n in ipairs(nodes) do
+        local d = dist(pos, IslandCF[n].Position)
+        if not bestD or d < bestD then bestD, best = d, n end
+    end
+    return best, bestD or math.huge
+end
+
+local function dijkstra(nodes, startName, goalName, maxStep)
+    local adj = {}
+    for _, a in ipairs(nodes) do adj[a] = {} end
+
+    for i=1,#nodes do
+        local ai = nodes[i]
+        local ap = IslandCF[ai].Position
+        for j=i+1,#nodes do
+            local bj = nodes[j]
+            local bp = IslandCF[bj].Position
+            local d = dist(ap, bp)
+            if d <= maxStep then
+                adj[ai][bj] = d
+                adj[bj][ai] = d
+            end
         end
+    end
+
+    local distMap, prev, used = {}, {}, {}
+    for _, n in ipairs(nodes) do distMap[n] = math.huge end
+    distMap[startName] = 0
+
+    while true do
+        local u, best = nil, math.huge
+        for _, n in ipairs(nodes) do
+            if not used[n] and distMap[n] < best then best, u = distMap[n], n end
+        end
+        if not u or u == goalName then break end
+        used[u] = true
+        for v, w in pairs(adj[u]) do
+            if not used[v] then
+                local nd = distMap[u] + w
+                if nd < distMap[v] then distMap[v], prev[v] = nd, u end
+            end
+        end
+    end
+
+    if distMap[goalName] == math.huge then return nil end
+    local path, cur = {}, goalName
+    while cur do
+        table.insert(path, 1, cur)
+        cur = prev[cur]
+    end
+    return path
+end
+
+local function HoldTPAndReset(pos)
+    local c, hrp, hum = GetChar()
+    if not c then return false end
+    local cf = CFrame.new(pos)
+
+    pcall(function()
+        hrp.CFrame = cf
+        hrp.AssemblyLinearVelocity = Vector3.zero
+        hrp.AssemblyAngularVelocity = Vector3.zero
+    end)
+
+    local t0 = os.clock()
+    while os.clock() - t0 < getgenv().PMT_HOLD_TIME do
+        if _STOP then break end
+        if not (hrp and hrp.Parent and hum and hum.Parent and hum.Health > 0) then break end
+        pcall(function()
+            hrp.CFrame = cf
+            hrp.AssemblyLinearVelocity = Vector3.zero
+            hrp.AssemblyAngularVelocity = Vector3.zero
+        end)
+        task.wait(getgenv().PMT_HOLD_STEP)
+    end
+
+    if _STOP then return false end
+    pcall(function() hum.Health = 0 end)
+    return true
+end
+
+local function WaitRespawn()
+    local t0 = os.clock()
+    while os.clock() - t0 < getgenv().PMT_RESPAWN_TIMEOUT do
+        if _STOP then return false end
+        local c = LocalPlayer.Character
+        local hrp = c and c:FindFirstChild("HumanoidRootPart")
+        local hum = c and c:FindFirstChildOfClass("Humanoid")
+        if hrp and hum and hum.Health > 0 then return true end
+        task.wait(0.15)
+    end
+    return false
+end
+
+-- ====================================================================
+-- HÀM THỰC HIỆN BYPASS TP (FAST HOP)
+-- ====================================================================
+function PMT_FastHopTo(targetName)
+    targetName = normName(targetName)
+    if not (targetName and IslandCF[targetName]) then return false end
+
+    local nodes = buildNodes()
+    if #nodes == 0 then return false end
+
+    local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not hrp then
+        if not WaitRespawn() then return false end
+        hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    end
+    if not hrp then return false end
+
+    local startIsland = nearestIsland(hrp.Position, nodes)
+    local path = dijkstra(nodes, startIsland, targetName, getgenv().PMT_MAX_STEP_DIST)
+    if not path then return false end
+
+    _RUN, _STOP = true, false
+
+    for _, name in ipairs(path) do
+        if _STOP then break end
+        local pos = IslandCF[name].Position
+        local ch = LocalPlayer.Character
+        local hrp2 = ch and ch:FindFirstChild("HumanoidRootPart")
+        if hrp2 and dist(hrp2.Position, pos) <= getgenv().PMT_SKIP_IF_NEAR then
+            task.wait(0.1)
+        else
+            if not HoldTPAndReset(pos) or _STOP then break end
+            if not WaitRespawn() or _STOP then break end
+        end
+        task.wait(0.2)
+    end
+
+    _RUN = false
+    return not _STOP
+end
+
+function PMT_StopFastHop()
+    _STOP = true
+end
+
+function PMT_IsFastHopRunning()
+    return _RUN
+end
+
+-- ====================================================================
+-- MAIN TWEEN HUB (KIỂM TRA TRẠNG THÁI BYPASS TP ĐẦU TIÊN)
+-- ====================================================================
+
+function isInWater(pos)
+    return pos.Position.Y < -60
+end
+
+function CheckNearestTeleporter(target)
+    if isInWater(target) then return end
+    local targetPosition = target.Position
+    local minDist = math.huge
+    local chosenTeleport = nil
+    local TableLocations = {}
+
+    if World1 then
+        TableLocations = {
+            ["Sky3"] = Vector3.new(-7894, 5547, -380),
+            ["Sky3Exit"] = Vector3.new(-4607, 874, -1667),
+            ["UnderWater"] = Vector3.new(61163, 11, 1819),
+            ["Underwater City"] = Vector3.new(61165, 0, 1897),
+            ["Pirate Village"] = Vector3.new(-1242, 4, 3901),
+            ["UnderwaterExit"] = Vector3.new(4050, -1, -1814)
+        }
+    elseif World2 then
+        TableLocations = {
+            ["Swan Mansion"] = Vector3.new(-390, 332, 673),
+            ["Swan Room"] = Vector3.new(2285, 15, 905),
+            ["Cursed Ship"] = Vector3.new(923, 126, 32852),
+            ["Zombie Island"] = Vector3.new(-6509, 83, -133)
+        }
+    elseif World3 then
+        TableLocations = {
+            ["Floating Turtle"] = Vector3.new(-12462, 375, -7552),
+            ["Hydra Island"] = Vector3.new(5657, 1013, -335),
+            ["Mansion"] = Vector3.new(-12462, 375, -7552),
+            ["Castle"] = Vector3.new(-5036, 315, -3179),
+            ["Dimensional Shift"] = Vector3.new(-2097, 4776, -15013),
+            ["Beautiful Pirate"] = Vector3.new(5319, 23, -93),
+            ["Beautiful Room"] = Vector3.new(5314, 22, -125),
+            ["Temple of Time"] = Vector3.new(28286, 14897, 103),
+        }
+    end
+
+    for _, v in pairs(TableLocations) do
+        local dist = (v - targetPosition).Magnitude
+        if dist < minDist then
+            minDist = dist
+            chosenTeleport = v
+        end
+    end
+
+    if minDist <= (targetPosition - HumanoidRootPart.Position).Magnitude then
+        return chosenTeleport
+    end
+end
+
+function requestEntrance(teleportPos)
+    pcall(function()
+        Remotes.CommF_:InvokeServer("requestEntrance", teleportPos)
+    end)
+    task.wait(0.5)
+end
+
+ffunction TweenPlayer(Pos)
+    Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    Humanoid = Character:WaitForChild("Humanoid")
+    HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+    if not Pos then
+        shouldTween = false
+        isTeleporting = false
+        if CurrentTween then CurrentTween:Cancel() CurrentTween = nil end
+        if Character:FindFirstChild("PartTele") then Character.PartTele:Destroy() end
+        for _, v in pairs(Character:GetDescendants()) do
+            if v:IsA("BasePart") then
+                v.CanCollide = true
+                v.AssemblyLinearVelocity = Vector3.zero
+                v.AssemblyAngularVelocity = Vector3.zero
+            end
+        end
+        return
+    end
+
+    if Humanoid.Health <= 0 then return end
+    local Distance = (Pos.Position - HumanoidRootPart.Position).Magnitude
+
+    -- 🔥 Hệ thống Bypass TP nhảy đảo (Giữ nguyên không đụng tới)
+    if _G.Settings and _G.Settings.Setting and _G.Settings.Setting["Bypass TP"] == true and Distance > (getgenv().PMT_SKIP_IF_NEAR or 2000) then
+        local nodes = buildNodes()
+        local nearIslandName = nearestIsland(Pos.Position, nodes)
+        if nearIslandName then
+            _STOP = false
+            local success = PMT_FastHopTo(nearIslandName)
+            Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+            if _STOP or _G.Settings.Setting["Bypass TP"] ~= true then return end
+        end
+    end
+
+    Distance = (Pos.Position - HumanoidRootPart.Position).Magnitude
+    local nearestTeleport = CheckNearestTeleporter(Pos)
+    if nearestTeleport then
+        requestEntrance(nearestTeleport)
         task.wait(0.5)
-    until (p.Position - humanoidRootPart.Position).Magnitude <= 2000
+        Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+        Distance = (Pos.Position - HumanoidRootPart.Position).Magnitude
+    end
+
+    if CurrentTween then CurrentTween:Cancel() end
+    if Distance < 15 then HumanoidRootPart.CFrame = Pos return end
+
+    local PartTele = Character:FindFirstChild("PartTele")
+    if not PartTele then
+        PartTele = Instance.new("Part")
+        PartTele.Name = "PartTele"
+        PartTele.Size = Vector3.new(10,1,10)
+        PartTele.Anchored = true
+        PartTele.Transparency = 1
+        PartTele.CanCollide = false
+        PartTele.CFrame = HumanoidRootPart.CFrame
+        PartTele.Parent = Character
+
+        PartTele:GetPropertyChangedSignal("CFrame"):Connect(function()
+            if not isTeleporting then return end
+            if Character and HumanoidRootPart and PartTele then
+                HumanoidRootPart.CFrame = PartTele.CFrame
+                for _, v in pairs(Character:GetDescendants()) do
+                    if v:IsA("BasePart") then v.CanCollide = false end
+                end
+                HumanoidRootPart.AssemblyLinearVelocity = Vector3.zero
+                HumanoidRootPart.AssemblyAngularVelocity = Vector3.zero
+                if HumanoidRootPart.Position.Y < PartTele.Position.Y - 8 then
+                    HumanoidRootPart.CFrame = PartTele.CFrame + Vector3.new(0,3,0)
+                end
+            end
+        end)
+    end
+
+    isTeleporting = true
+    shouldTween = true
+    local Speed = (_G.Settings and _G.Settings.Setting and _G.Settings.Setting["Player Tween Speed"]) or _G.PlayerTweenSpeed or 300
+
+    local TweenTime = Distance / Speed
+    if Distance < 150 then TweenTime *= 0.8 end
+    if Distance < 80 then TweenTime *= 0.7 end
+    if Distance < 40 then TweenTime *= 0.5 end
+
+    local TweenInfo_ = TweenInfo.new(TweenTime, Enum.EasingStyle.Linear)
+    CurrentTween = TweenService:Create(PartTele, TweenInfo_, {CFrame = Pos})
+    CurrentTween:Play()
+
+    CurrentTween.Completed:Connect(function(state)
+        if state == Enum.PlaybackState.Completed then
+            isTeleporting = false
+            shouldTween = false
+            if PartTele then PartTele:Destroy() end
+        end
+    end)
 end
 
 
--- Vòng lặp Highlight riêng biệt để không gây lag[cite: 2]
+
+-- ====================================================================
+-- BACKGROUND LOOPS (HỆ THỐNG PHỤ)
+-- ====================================================================
+
 task.spawn(function()
-    while task.wait(0.1) do
+    while task.wait(0.15) do
         pcall(function()
-            local char = game.Players.LocalPlayer.Character
+            local char = LocalPlayer.Character
             if not char then return end
-            
             local hl = char:FindFirstChild("AstraHighlight")
 
             if shouldTween then
                 if not hl then
                     hl = Instance.new("Highlight")
                     hl.Name = "AstraHighlight"
-                    hl.FillColor = Color3.fromRGB(2, 197, 60)
+                    hl.FillColor = Color3.fromRGB(2,197,60)
                     hl.OutlineColor = Color3.fromRGB(255,255,255)
+                    hl.FillTransparency = 0.35
+                    hl.OutlineTransparency = 0
                     hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
                     hl.Parent = char
                 end
                 hl.Enabled = true
             elseif hl then
-                hl:Destroy()
+                hl.Enabled = false
             end
         end)
     end
 end)
+
 task.spawn(function()
-	while task.wait() do
-		pcall(function()
-			if shouldTween then -- 🔥 CHỈ chạy khi đang tween
-				local char = game.Players.LocalPlayer.Character
-				if char and char:FindFirstChild("Root") and char:FindFirstChild("HumanoidRootPart") then
-					char.HumanoidRootPart.CFrame = char.Root.CFrame
-					if (char.Root.Position - char.HumanoidRootPart.Position).Magnitude >= 1 then
-						char.Root.CFrame = char.HumanoidRootPart.CFrame
-					end
-				end
-			end
-		end)
-	end
+    while task.wait() do
+        pcall(function()
+            if shouldTween then
+                local char = game.Players.LocalPlayer.Character
+                if char and char:FindFirstChild("Root") and char:FindFirstChild("HumanoidRootPart") then
+                    char.HumanoidRootPart.CFrame = char.Root.CFrame
+                    if (char.Root.Position - char.HumanoidRootPart.Position).Magnitude >= 1 then
+                        char.Root.CFrame = char.HumanoidRootPart.CFrame
+                    end
+                end
+            end
+        end)
+    end
 end)
+
+task.spawn(function()
+    while task.wait(0.2) do
+        if not _G.Settings.Setting["Bypass TP"] and _RUN then
+            PMT_StopFastHop()
+        end
+    end
+end)
+--
+-- ==========================================
+-- HÀM TWEEN PLAYER (TP 2) + BYPASS TP
+-- ==========================================
+-- Chuyển đổi từ hệ thống cũ sang tween astra.lua
+-- Biến kiểm soát trạng thái
 spawn(function()
 	(game:GetService("RunService")).RenderStepped:Connect(function()
 		pcall(function()
@@ -10657,21 +11055,21 @@ TeleportWordSection = Tabs.TeleportTab:Section({
 	Title = "Sea Teleport",
 	TextXAlignment = "Left"
 });
-TeleportWord1Section = Tabs.TeleportTab:Section({
+TeleportWord1Button = Tabs.TeleportTab:Button({
 	Title = "Sea 1",
 	Desc = "Word 1",
 	Callback = function()
 		game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelMain")
     end
 });
-TeleportWord2Section = Tabs.TeleportTab:Section({
+TeleportWord2Button = Tabs.TeleportTab:Button({
 	Title = "Sea 2",
 	Desc = "Word 2",
 	Callback = function()
 		game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelDressrosa")
     end
 });
-TeleportWord3Section = Tabs.TeleportTab:Section({
+TeleportWord3Button = Tabs.TeleportTab:Button({
 	Title = "Sea 3",
 	Desc = "Word 3",
 	Callback = function()
