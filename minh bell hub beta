@@ -2714,7 +2714,7 @@ function requestEntrance(teleportPos)
     task.wait(0.5)
 end
 
-ffunction TweenPlayer(Pos)
+function TweenPlayer(Pos)
     Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
     Humanoid = Character:WaitForChild("Humanoid")
     HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
