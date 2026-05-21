@@ -12084,11 +12084,6 @@ RemoveLavaButton = Tabs.MiscTab:Button({
 local plr = game:GetService("Players").LocalPlayer
 local TW = game:GetService("TweenService")
 -- Assuming 1 second default for Sec
-while task.wait(1) do 
--- Added helper for Attack.Pos logic
-local function checkPos(target, dist)
-    return (lp.Character.HumanoidRootPart.Position - target).Magnitude < dist
-end
 
 spawn(function()
   while wait(Sec) do
