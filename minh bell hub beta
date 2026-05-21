@@ -11862,6 +11862,7 @@ BuyTomoeRingButton = Tabs.ShopTab:Button({
 	Callback = function()
 		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuyItem", "Tomoe Ring");
 	end
+});
 BuyGhoulMaskButton = Tabs.ShopTab:Button({
 	Title = "Buy Ghoul Mask",
 	Desc = "Mua Mặt Nạ Ma Cà Rồng",
