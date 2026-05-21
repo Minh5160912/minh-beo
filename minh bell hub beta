@@ -2392,9 +2392,9 @@ local CurrentTween = nil
 local isTeleporting = false
 local shouldTween = false
 
-local World1 = game.PlaceId == 2753915549
-local World2 = game.PlaceId == 4442272183
-local World3 = game.PlaceId == 7449423635
+local World1 = game.PlaceId == 2753915549 or game.placeId == 85211729168715 
+local World2 = game.placeId == 4442272183 or game.placeId == 79091703265657 
+local World3 = game.PlaceId == 7449423635 or game.placeId == 100117331123089 
 
 -- ====================================================================
 -- CẤU HÌNH BYPASS TP
@@ -11553,6 +11553,9 @@ FightingStyleShopSection = Tabs.ShopTab:Section({
 	Title = "Fighting Style",
 	TextXAlignment = "Left"
 });
+local World1 = game.PlaceId == 2753915549 or game.placeId == 85211729168715 
+local World2 = game.placeId == 4442272183 or game.placeId == 79091703265657 
+local World3 = game.PlaceId == 7449423635 or game.placeId == 100117331123089 
 BuyBlackLegButton = Tabs.ShopTab:Button({
 	Title = "Buy Black Leg",
 	Desc = "$150,000",
