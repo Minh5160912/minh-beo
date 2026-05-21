@@ -12097,9 +12097,9 @@ dayornight = Tabs.MiscTab:Toggle({
 task.spawn(function()
   while task.wait() do
     if _G.daylightN then
-      if _G.SelectDN == "Day" then
+      if _G.SelectDN == "Morning" then
         Lighting.ClockTime = 12
-      elseif _G.SelectDN == "Night" then
+      elseif _G.SelectDN == "Evening" then
         Lighting.ClockTime = 0
       end
     end
