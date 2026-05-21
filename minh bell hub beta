@@ -11559,7 +11559,7 @@ BuyBlackLegButton = Tabs.ShopTab:Button({
 	Callback = function()
 	local Pos = World1 and CFrame.new(-985, 13, 3988) or World2 and CFrame.new(-4753, 35, -4850) or World3 and CFrame.new(-5045, 371, -3181)
   	TweenTo(Pos)
-		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuyBlackLeg");
+		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuyBlackLeg")
 	end
 });
 BuyElectroButton = Tabs.ShopTab:Button({
@@ -11568,7 +11568,7 @@ BuyElectroButton = Tabs.ShopTab:Button({
 	Callback = function()
 	local Pos = World1 and CFrame.new(-5384, 13, -2148) or World2 and CFrame.new(-4867, 35, -4766) or World3 and CFrame.new(-4995, 314, -3203)
   	TweenTo(Pos)
-		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuyElectro");
+		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuyElectro")
 	end
 });
 BuyFishmanKarateButton = Tabs.ShopTab:Button({
@@ -11577,7 +11577,7 @@ BuyFishmanKarateButton = Tabs.ShopTab:Button({
 	Callback = function()
 	local Pos = World1 and CFrame.new(61585, 18, 987) or World2 and CFrame.new(-4958, 35, -4668) or World3 and CFrame.new(-5023, 371, -3190)
   	TweenTo(Pos)
-		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuyFishmanKarate");
+		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuyFishmanKarate")
 	end
 });
 BuyDragonClawButton = Tabs.ShopTab:Button({
@@ -11587,7 +11587,7 @@ BuyDragonClawButton = Tabs.ShopTab:Button({
 	local Pos = World2 and CFrame.new(701, 187, 655) or World3 and CFrame.new(-4981, 371, -3207)
   	TweenTo(Pos)
 		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BlackbeardReward", "DragonClaw", "2");
-		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BlackbeardReward", "DragonClaw", "1");
+		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BlackbeardReward", "DragonClaw", "1")
 	end
 });
 BuySuperhumanButton = Tabs.ShopTab:Button({
@@ -11596,7 +11596,7 @@ BuySuperhumanButton = Tabs.ShopTab:Button({
 	Callback = function()
 	local Pos = World2 and CFrame.new(1374, 247, -5192) or World3 and CFrame.new(-5004, 371, -3198)
   	TweenTo(Pos)
-		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuySuperhuman");
+		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuySuperhuman")
 	end
 });
 BuyDeathStepButton = Tabs.ShopTab:Button({
@@ -11605,7 +11605,7 @@ BuyDeathStepButton = Tabs.ShopTab:Button({
 	Callback = function()
 	local Pos = World2 and CFrame.new(6357, 296, -6762) or World3 and CFrame.new(-4999, 314, -3221)
   	TweenTo(Pos)
-		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuyDeathStep");
+		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuyDeathStep")
 	end
 });
 BuySharkmanKarateButton = Tabs.ShopTab:Button({
@@ -11615,7 +11615,7 @@ BuySharkmanKarateButton = Tabs.ShopTab:Button({
 	local Pos = World2 and CFrame.new(-2602, 238, -10316) or World3 and CFrame.new(-4972, 314, -3222)
   	TweenTo(Pos)
 		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuySharkmanKarate", true);
-		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuySharkmanKarate");
+		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuySharkmanKarate")
 	end
 });
 BuyElectricClawButton = Tabs.ShopTab:Button({
@@ -11624,7 +11624,7 @@ BuyElectricClawButton = Tabs.ShopTab:Button({
 	Callback = function()
 	local Pos = World3 and CFrame.new(-10371, 331, -10131)
   	TweenTo(Pos)
-		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuyElectricClaw");
+		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuyElectricClaw")
 	end
 });
 BuyDragonTalonButton = Tabs.ShopTab:Button({
@@ -11633,7 +11633,7 @@ BuyDragonTalonButton = Tabs.ShopTab:Button({
 	Callback = function()
 	local Pos = World3 and CFrame.new(5661, 1211, 865)
   	TweenTo(Pos)
-		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuyDragonTalon");
+		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuyDragonTalon")
 	end
 });
 BuyGodHumanButton = Tabs.ShopTab:Button({
@@ -11652,7 +11652,7 @@ BuySanguineArtButton = Tabs.ShopTab:Button({
 	local Pos = World3 and CFrame.new(-16353, 160, 99)
   	TweenTo(Pos)
 		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuySanguineArt", true);
-		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuySanguineArt");
+		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuySanguineArt")
 	end
 });
 SwordShopSection = Tabs.ShopTab:Section({
@@ -11663,21 +11663,21 @@ BuyCutlassButton = Tabs.ShopTab:Button({
 	Title = "Buy Cutlass",
 	Desc = "$1,000",
 	Callback = function()
-		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuyItem", "Cutlass");
+		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuyItem", "Cutlass")
 	end
 });
 BuyKatanaButton = Tabs.ShopTab:Button({
 	Title = "Buy Katana",
 	Desc = "$1,000",
 	Callback = function()
-		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuyItem", "Katana");
+		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuyItem", "Katana")
 	end
 });
 BuyIronMaceButton = Tabs.ShopTab:Button({
 	Title = "Buy Iron Mace",
 	Desc = "$25,000",
 	Callback = function()
-		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuyItem", "Iron Mace");
+		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuyItem", "Iron Mace")
 	end
 });
 BuyDualKatanaButton = Tabs.ShopTab:Button({
