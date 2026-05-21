@@ -11988,10 +11988,10 @@ HakiStatesSection = Tabs.MiscTab:Section({
 });
 
 local HakiSt = {"State 0","State 1","State 2","State 3","State 4","State 5"}
-HakiStat = Tabs.Misc:Dropdown({
+HakiStat = Tabs.MiscTab:Dropdown({ -- Fixed Tab reference
 	Title = "Select Haki States",
 	Values = HakiSt,
-	Value = State 0,
+	Default = "State 0", -- Added quotes and changed to 'Default' (standard UI practice)
 	Callback = function(option)
 		_G.Settings.Misc["SelectStateHaki"] = option;
 		(getgenv()).SaveSetting();
@@ -12081,6 +12081,15 @@ RemoveLavaButton = Tabs.MiscTab:Button({
 	
 	end
 });
+local plr = game:GetService("Players").LocalPlayer
+local TW = game:GetService("TweenService")
+-- Assuming 1 second default for Sec
+while task.wait(1) do 
+-- Added helper for Attack.Pos logic
+local function checkPos(target, dist)
+    return (lp.Character.HumanoidRootPart.Position - target).Magnitude < dist
+end
+
 spawn(function()
   while wait(Sec) do
     pcall(function()
