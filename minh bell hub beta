@@ -11558,7 +11558,7 @@ BuyBlackLegButton = Tabs.ShopTab:Button({
 	Desc = "$150,000",
 	Callback = function()
 	local Pos = World1 and CFrame.new(-985, 13, 3988) or World2 and CFrame.new(-4753, 35, -4850) or World3 and CFrame.new(-5045, 371, -3181)
-  	TweenTo(Pos)
+  	TweenTo(Pos);
 		(game:GetService("ReplicatedStorage")).Remotes.CommF_:InvokeServer("BuyBlackLeg")
 	end
 });
