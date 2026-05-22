@@ -1,83 +1,4 @@
-local WindUI = (loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/main.lua")))()
-
-local Players = game:GetService("Players")
-local lp = Players.LocalPlayer
-local VIM = game:GetService("VirtualInputManager")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local VirtualUser = game:GetService("VirtualUser")
-local Camera = workspace.CurrentCamera
-local Enemies = workspace:WaitForChild("Enemies")
-local Characters = workspace:WaitForChild("Characters")
-
--- Global Settings
-_G.UltraClick = false
-getgenv().AutoClickShootSettings = {
-    Enabled = false,
-    ClickDelay = 2,
-    LastClickTime = 0
-}
-getgenv().GunAuraSettings = {
-    Enabled = true,
-    GunRange = 500,
-    CurrentTarget = nil,
-    TargetType = "All",
-    GunEnabled = false,
-    FireRate = 0.01,
-}
-
-local function GetPlayerData()
-    local char = lp.Character
-    local data = lp:FindFirstChild("Data")
-    local stats = lp:FindFirstChild("leaderstats")
-    
-    local info = {
-        level = data and data:FindFirstChild("Level") and data.Level.Value or 0,
-        beli = data and data:FindFirstChild("Beli") and data.Beli.Value or 0,
-        fruit = data and data:FindFirstChild("DevilFruit") and data.DevilFruit.Value or "None",
-        race = data and data:FindFirstChild("Race") and data.Race.Value or "Human",
-        bounty = stats and stats:FindFirstChild("Bounty/Honor") and stats["Bounty/Honor"].Value or 0,
-        hp = 0, maxHp = 0, en = 0, maxEn = 0
-    }
-
-    if char and char:FindFirstChild("Humanoid") then
-        info.hp = math.floor(char.Humanoid.Health)
-        info.maxHp = math.floor(char.Humanoid.MaxHealth)
-    end
-    if char and char:FindFirstChild("Energy") then
-        info.en = math.floor(char.Energy.Value)
-        info.maxEn = math.floor(char.Energy.MaxValue)
-    end
-    return info
-end
-
-local function ShowUserPopup()
-    local d = GetPlayerData()
-    WindUI:Popup({
-        Title = "Bảng Trạng Thái",
-        Icon = "user",
-        Content = string.format(
-            "⭐ Level: %s\n❤️ Health: %s / %s\n⚡ Energy: %s / %s\n💰 Beli: %s\n🍎 Fruit: %s\n🧬 Race: %s\n☠️ Bounty: %s",
-            d.level, d.hp, d.maxHp, d.en, d.maxEn, d.beli, d.fruit, d.race, d.bounty
-        ),
-        Buttons = {
-            {
-                Title = "Đóng",
-                Icon = "x",
-                Callback = function() end,
-                Variant = "Secondary",
-            },
-            {
-                Title = "Làm mới",
-                Icon = "refresh-cw",
-                Callback = function() 
-                    ShowUserPopup() 
-                end,
-                Variant = "Primary",
-            }
-        }
-    })
-end
-
+local WindUI = (loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua")))()
 local Window = WindUI:CreateWindow({
     Title = "Minh BELL Hub",
     Author = "Blox Fruits",
@@ -90,7 +11,55 @@ local Window = WindUI:CreateWindow({
     User = {
         Enabled = true,
         Anonymous = false,
-        Callback = ShowUserPopup
+        Callback = function()
+            local lp = game:GetService("Players").LocalPlayer
+            local char = lp.Character
+            local data = lp.Data
+            
+            -- Lấy các thông số cơ bản
+            local level = data.Level.Value
+            local beli = data.Beli.Value
+            local fruit = data.DevilFruit.Value
+            local race = data.Race.Value
+            local bounty = lp.leaderstats["Bounty/Honor"].Value
+
+            -- Mặc định nếu chưa có nhân vật
+            local hp, maxHp = 0, 0
+            local en, maxEn = 0, 0
+
+            -- Kiểm tra nhân vật để lấy Máu và Năng lượng
+            if char and char:FindFirstChild("Humanoid") and char:FindFirstChild("Energy") then
+                hp = math.floor(char.Humanoid.Health)
+                maxHp = math.floor(char.Humanoid.MaxHealth)
+                en = math.floor(char.Energy.Value)
+                maxEn = math.floor(char.Energy.MaxValue)
+            end
+
+            WindUI:Popup({
+                Title = "Bảng Trạng Thái",
+                Icon = "user",
+                Content = string.format(
+                    "⭐ Level: %s\n❤️ Health: %s / %s\n⚡ Energy: %s / %s\n💰 Beli: %s\n🍎 Fruit: %s\n🧬 Race: %s\n☠️ Bounty: %s",
+                    level, hp, maxHp, en, maxEn, beli, fruit, race, bounty
+                ),
+                Buttons = {
+                    {
+                        Title = "Đóng",
+                        Icon = "x",
+                        Callback = function() end,
+                        Variant = "Secondary",
+                    },
+                    {
+                        Title = "Làm mới",
+                        Icon = "refresh-cw",
+                        Callback = function() 
+                            Window:GetUser().Callback() 
+                        end,
+                        Variant = "Primary",
+                    }
+                }
+            })
+        end,
     }
 })
 
@@ -99,10 +68,14 @@ Window:EditOpenButton({
     Icon = "monitor",
     CornerRadius = UDim.new(1,0),
     StrokeThickness = 3,
-    Enabled = true,
+    Enabled = true, -- enable or disable openbutton
     Draggable = true,
     OnlyMobile = false,
-    Color = ColorSequence.new(Color3.fromHex("#30FF6A"), Color3.fromHex("#e7ff2f")),
+
+    Color = ColorSequence.new( -- gradient
+        Color3.fromHex("#30FF6A"), 
+        Color3.fromHex("#e7ff2f")
+    ),
 }) 
 
 local Tabs = {
@@ -113,12 +86,36 @@ local Tabs = {
     }),
 }
 
--- Remotes setup
-local Net = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Net"))
-local ShootGunEvent = ReplicatedStorage.Modules.Net:FindFirstChild("RE/ShootGun")
+_G.UltraClick = false
 
--- Fast Attack Logic
+-- Services & Bổ sung các biến bị thiếu
+local Players = game:GetService("Players")
+local VIM = game:GetService("VirtualInputManager")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualUser = game:GetService("VirtualUser")
+
+local lp = Players.LocalPlayer
+local Player = lp -- Fix biến Player trong Gun Aura
+local Camera = workspace.CurrentCamera -- Fix biến Camera
+local Enemies = workspace:WaitForChild("Enemies") -- Fix biến Enemies
+local Characters = workspace:WaitForChild("Characters") -- Fix biến Characters
+
+-- Require modules
+local Net = require(ReplicatedStorage.Modules.Net)
+local CombatUtil = require(ReplicatedStorage.Modules.CombatUtil)
+
+-- Remotes
+local hitRemote = Net:RemoteEvent("RegisterHit")
+local attackRemote = ReplicatedStorage.Modules.Net:FindFirstChild("RE/RegisterAttack")
+local ShootGunEvent = ReplicatedStorage.Modules.Net:FindFirstChild("RE/ShootGun") -- Remote bắn súng (nếu có)
+
+-- ==========================================
+-- CODE CLICK MỚI CỦA BẠN
+-- ==========================================
+
 getgenv()._FastAttackBackup = getgenv()._FastAttackBackup or {}
+
+-- config
 local HITBOX = 100000
 local LOOP_DELAY = 0.0001
 
@@ -132,8 +129,13 @@ end
 local WeaponData = safeRequireWeaponData()
 
 local function findAttackMelee()
-    if getgenv().attackMelee then return getgenv().attackMelee end
-    if not getgc or not debug.getinfo then return nil end
+    if getgenv().attackMelee and typeof(getgenv().attackMelee) == "function" then
+        return getgenv().attackMelee
+    end
+
+    if typeof(getgc) ~= "function" or typeof(debug) ~= "table" or typeof(debug.getinfo) ~= "function" then
+        return nil
+    end
 
     for _, v in next, getgc(true) do
         if typeof(v) == "function" then
@@ -147,30 +149,81 @@ local function findAttackMelee()
     return nil
 end
 
-local function applyFastUpvalues(fn)
-    if not setupvalue or not getupvalues then return end
+local function cacheUpvalueTargets(fn)
+    if getgenv()._FastAttackBackup._uv_cached then return end
+    getgenv()._FastAttackBackup._uv_cached = true
+    getgenv()._FastAttackBackup._uv_idx = {}
+
+    if typeof(getupvalues) ~= "function" then return end
+
     local ok, uvs = pcall(getupvalues, fn)
-    if not ok then return end
+    if not ok or type(uvs) ~= "table" then return end
+
     for i, v in next, uvs do
-        if type(v) == "number" and v > 0 and v < 5 then
-            pcall(setupvalue, fn, i, 0)
-        elseif type(v) == "boolean" and v == true then
-            pcall(setupvalue, fn, i, false)
+        local t = typeof(v)
+        if t == "number" then
+            if v > 0 and v < 5 then
+                table.insert(getgenv()._FastAttackBackup._uv_idx, {i = i, kind = "number"})
+            end
+        elseif t == "boolean" then
+            if v == true then
+                table.insert(getgenv()._FastAttackBackup._uv_idx, {i = i, kind = "boolean"})
+            end
         end
     end
 end
 
+local function applyFastUpvalues(fn)
+    if typeof(setupvalue) ~= "function" then return end
+    local idxs = getgenv()._FastAttackBackup._uv_idx
+    if type(idxs) ~= "table" then return end
+
+    for _, it in ipairs(idxs) do
+        if it.kind == "number" then
+            pcall(setupvalue, fn, it.i, 0)
+        elseif it.kind == "boolean" then
+            pcall(setupvalue, fn, it.i, false)
+        end
+    end
+end
+
+-- Vòng lặp click mới
 task.spawn(function()
+    repeat task.wait() until game:IsLoaded() and lp
+
+    while task.wait(0.2) do
+        local fn = findAttackMelee()
+        if fn then
+            cacheUpvalueTargets(fn)
+            break
+        end
+    end
+
     while task.wait(LOOP_DELAY) do
         if _G.UltraClick then
             pcall(function()
-                local attackFn = findAttackMelee()
-                if not attackFn or not lp.Character then return end
-                
-                local tool = lp.Character:FindFirstChildOfClass("Tool")
-                if not tool or not WeaponData then return end
+                local attackFn = getgenv().attackMelee
+                if typeof(attackFn) ~= "function" then
+                    attackFn = findAttackMelee()
+                    if typeof(attackFn) ~= "function" then
+                        return
+                    end
+                end
+
+                local char = lp.Character
+                if not char then return end
+
+                local tool = char:FindFirstChildOfClass("Tool")
+                if not tool then return end
+
+                if not WeaponData then
+                    WeaponData = safeRequireWeaponData()
+                    if not WeaponData then return end
+                end
 
                 local weaponName = tool:GetAttribute("WeaponName")
+                if not weaponName then return end
+
                 local w = WeaponData[weaponName]
                 if not w then return end
 
@@ -181,38 +234,59 @@ task.spawn(function()
                 applyFastUpvalues(attackFn)
                 w.HitboxMagnitude = HITBOX
 
-                VIM:SendMouseButtonEvent(0, 0, 0, true, lp.PlayerGui, 0)
-                VIM:SendMouseButtonEvent(0, 0, 0, false, lp.PlayerGui, 0)
-                attackFn()
+                pcall(function()
+                    VIM:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+                    VIM:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+                end)
+                pcall(attackFn)
             end)
         end
     end
 end)
 
--- Gun Aura Logic
+getgenv().GunAuraSettings = {
+    Enabled = true,
+    GunRange = 500,
+    CurrentTarget = nil,
+    TargetType = "All",
+    GunEnabled = false,
+    FireRate = 0.01,
+}
+
+local TargetTypes = {"Player", "NPC", "All"}
+
 local function IsAlive(character)
-    local hum = character and character:FindFirstChild("Humanoid")
+    if not character then return false end
+    local hum = character:FindFirstChild("Humanoid")
     return hum and hum.Health > 0
 end
 
-local function findClosestTargetForGun()
-    local char = lp.Character
-    if not char or not char:FindFirstChild("HumanoidRootPart") then return nil end
-    local myPos = char.HumanoidRootPart.Position
+local function setSimulationRadius()
+    pcall(function()
+        sethiddenproperty(Player, "SimulationRadius", 10000)
+    end)
+end
 
-    local closestDist = getgenv().GunAuraSettings.GunRange
-    local closestTarget, closestPart = nil, nil
+local function findClosestTargetForGun()
+    local myPos = Player.Character and Player.Character:GetPivot().Position
+    if not myPos then return nil end
+
+    setSimulationRadius()
+    local closestDist = getgenv().GunAuraSettings.GunRange + 1
+    local closestTarget = nil
+    local closestPart = nil
+    
     local targetType = getgenv().GunAuraSettings.TargetType
 
-    local function checkCollection(folder)
-        for _, obj in ipairs(folder:GetChildren()) do
-            if IsAlive(obj) and obj ~= char then
-                local hrp = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChild("Head")
+    if targetType == "NPC" or targetType == "All" then
+        for _, enemy in ipairs(Enemies:GetChildren()) do
+            if IsAlive(enemy) and enemy ~= Player.Character then
+                local hrp = enemy:FindFirstChild("HumanoidRootPart") or enemy:FindFirstChild("Head")
                 if hrp then
                     local dist = (hrp.Position - myPos).Magnitude
                     if dist < closestDist then
                         closestDist = dist
-                        closestTarget = obj
+                        closestTarget = enemy
                         closestPart = hrp
                     end
                 end
@@ -220,42 +294,121 @@ local function findClosestTargetForGun()
         end
     end
 
-    if targetType == "NPC" or targetType == "All" then checkCollection(Enemies) end
-    if targetType == "Player" or targetType == "All" then checkCollection(Characters) end
+    if targetType == "Player" or targetType == "All" then
+        for _, char in ipairs(Characters:GetChildren()) do
+            if IsAlive(char) and char ~= Player.Character then
+                local hrp = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Head")
+                if hrp then
+                    local dist = (hrp.Position - myPos).Magnitude
+                    if dist < closestDist then
+                        closestDist = dist
+                        closestTarget = char
+                        closestPart = hrp
+                    end
+                end
+            end
+        end
+    end
 
     return closestTarget, closestPart
 end
 
--- UI Construction
+local function applyGunDamage()
+    if not getgenv().GunAuraSettings.GunEnabled then return end
+    if not Player.Character or not IsAlive(Player.Character) then 
+        getgenv().GunAuraSettings.CurrentTarget = nil
+        return 
+    end
+
+    local target, targetPart = findClosestTargetForGun()
+    if not target or not targetPart then 
+        getgenv().GunAuraSettings.CurrentTarget = nil
+        return 
+    end
+
+    getgenv().GunAuraSettings.CurrentTarget = targetPart
+
+    if ShootGunEvent then
+        pcall(function()
+            for i = 1, 3 do
+                ShootGunEvent:FireServer(targetPart.Position, {targetPart})
+            end
+        end)
+    end
+end
+
+getgenv().AutoClickShootSettings = {
+    Enabled = false,
+    ClickDelay = 2,
+    LastClickTime = 0
+}
+
+local function isHoldingGun()
+    local character = Player.Character
+    if not character then return false end
+    
+    local tool = character:FindFirstChildOfClass("Tool")
+    return tool ~= nil
+end
+
+local function performClick()
+    if not getgenv().AutoClickShootSettings.Enabled then return end
+    if not isHoldingGun() then return end
+    
+    local currentTime = tick()
+    if currentTime - getgenv().AutoClickShootSettings.LastClickTime < getgenv().AutoClickShootSettings.ClickDelay then
+        return
+    end
+    
+    local clickPosition = Vector2.new(Camera.ViewportSize.X / 2, 20)
+    
+    VIM:SendMouseButtonEvent(clickPosition.X, clickPosition.Y, 0, true, game, 0)
+    task.wait(0.02)
+    VIM:SendMouseButtonEvent(clickPosition.X, clickPosition.Y, 0, false, game, 0)
+    
+    getgenv().AutoClickShootSettings.LastClickTime = currentTime
+end
+
+-- ==========================================
+-- GIAO DIỆN WINDUI CHUẨN
+-- ==========================================
+
 Tabs.MainTab:Dropdown({
     Title = "Select target type",
-    Values = {"Player", "NPC", "All"},
+    Options = TargetTypes,
     Value = "All",
-    Callback = function(t) getgenv().GunAuraSettings.TargetType = t end
+    Callback = function(type)
+        getgenv().GunAuraSettings.TargetType = type
+    end
 })
 
 Tabs.MainTab:Slider({
     Title = "Gun range",
-    Min = 50, Max = 20000, Value = 500, Step = 10,
-    Callback = function(val) getgenv().GunAuraSettings.GunRange = val end
+	Step = 10,
+	Value = {
+		Min = 50,
+		Max = 20000,
+		Default = 500,
+    },
+    Callback = function(val)
+        getgenv().GunAuraSettings.GunRange = val
+    end
 })
 
 Tabs.MainTab:Toggle({
-    Title = "Shoot Gun Aura",
+    Title = "Shoot Gun Aura ( Dùng Dragon Strorm👑)",
     Value = false,
-    Callback = function(val) getgenv().GunAuraSettings.GunEnabled = val end
+    Callback = function(val)
+        getgenv().GunAuraSettings.GunEnabled = val
+    end
 })
 
 Tabs.MainTab:Toggle({
-    Title = "Fast Melee Click",
+    Title = "Auto click when holding gun (2s)",
     Value = false,
-    Callback = function(val) _G.UltraClick = val end
-})
-
-Tabs.MainTab:Toggle({
-    Title = "Auto Click (Holding Gun)",
-    Value = false,
-    Callback = function(val) getgenv().AutoClickShootSettings.Enabled = val end
+    Callback = function(val)
+        _G.UltraClick = val
+    end
 })
 
 local targetDisplay = Tabs.MainTab:Paragraph({
@@ -263,66 +416,61 @@ local targetDisplay = Tabs.MainTab:Paragraph({
     Desc = "Searching..."
 })
 
--- Main Loops
+-- Vòng lặp cập nhật UI Target
 task.spawn(function()
     while task.wait(0.5) do
-        local target, part = findClosestTargetForGun()
-        if getgenv().GunAuraSettings.GunEnabled and target then
-            getgenv().GunAuraSettings.CurrentTarget = part
-            local hum = target:FindFirstChild("Humanoid")
-            local healthStr = hum and string.format("%.0f%%", (hum.Health/hum.MaxHealth)*100) or "Unknown"
-            targetDisplay:Set({
-                Title = "Target: " .. target.Name,
-                Desc = "Health: " .. healthStr
-            })
-        else
-            getgenv().GunAuraSettings.CurrentTarget = nil
-            targetDisplay:Set({Title = "Current Target", Desc = "Searching..."})
-        end
-    end
-end)
-
-task.spawn(function()
-    while true do
-        if getgenv().GunAuraSettings.GunEnabled and getgenv().GunAuraSettings.CurrentTarget and ShootGunEvent then
-            pcall(function()
-                ShootGunEvent:FireServer(getgenv().GunAuraSettings.CurrentTarget.Position, {getgenv().GunAuraSettings.CurrentTarget})
-            end)
-        end
-        task.wait(getgenv().GunAuraSettings.FireRate)
-    end
-end)
-
-task.spawn(function()
-    while true do
-        local s = getgenv().AutoClickShootSettings
-        if s.Enabled and tick() - s.LastClickTime >= s.ClickDelay then
-            local char = lp.Character
-            if char and char:FindFirstChildOfClass("Tool") then
-                VIM:SendMouseButtonEvent(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2, 0, true, lp.PlayerGui, 0)
-                task.wait(0.05)
-                VIM:SendMouseButtonEvent(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2, 0, false, lp.PlayerGui, 0)
-                s.LastClickTime = tick()
+        if getgenv().GunAuraSettings.GunEnabled and getgenv().GunAuraSettings.CurrentTarget then
+            local target = getgenv().GunAuraSettings.CurrentTarget.Parent
+            if target then
+                local targetType = "NPC"
+                if Characters:FindFirstChild(target.Name) then
+                    targetType = "Player"
+                elseif Enemies:FindFirstChild(target.Name) then
+                    targetType = "NPC"
+                end
+                
+                local hum = target:FindFirstChild("Humanoid")
+                local healthText = hum and string.format(" - %.1f/%.1f HP (%.0f%%)", hum.Health, hum.MaxHealth, (hum.Health / hum.MaxHealth) * 100) or ""
+                
+                local myPos = Player.Character and Player.Character:GetPivot().Position
+                local targetPos = getgenv().GunAuraSettings.CurrentTarget.Position
+                local distText = ""
+                if myPos and targetPos then
+                    local dist = math.floor((targetPos - myPos).Magnitude)
+                    distText = string.format(" [%d studs]", dist)
+                end
+                
+                -- Cập nhật Paragraph theo chuẩn WindUI
+                targetDisplay:Set({
+                    Title = "Current Target",
+                    Desc = string.format(" [%s] %s%s%s", targetType, target.Name, healthText, distText)
+                })
+            else
+                targetDisplay:Set({ Title = "Current Target", Desc = "Searching..." })
             end
+        else
+            targetDisplay:Set({ Title = "Current Target", Desc = "Searching..." })
         end
+    end
+end)
+
+-- Các vòng lặp khác
+task.spawn(function()
+    while true do
+        pcall(performClick)
         task.wait(0.1)
     end
 end)
+
 task.spawn(function()
     while true do
-        -- Kiểm tra nếu hàm applyGunDamage tồn tại thì mới gọi pcall
-        if type(applyGunDamage) == "function" then
-            pcall(applyGunDamage)
-        end
+        pcall(applyGunDamage)
         task.wait(getgenv().GunAuraSettings.FireRate) -- FireRate vẫn là 0.01
     end
 end)
 
 task.spawn(function()
     while task.wait(5) do
-        -- Kiểm tra nếu hàm setSimulationRadius tồn tại thì mới gọi pcall
-        if type(setSimulationRadius) == "function" then
-            pcall(setSimulationRadius)
-        end
+        pcall(setSimulationRadius)
     end
 end)
