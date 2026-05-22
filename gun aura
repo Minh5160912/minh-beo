@@ -1,104 +1,73 @@
-local WindUI = (loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua")))()
-local Window = WindUI:CreateWindow({
-    Title = "Minh BELL Hub",
-    Author = "Blox Fruits",
-    Folder = "By LEE MIN",
-    Size = UDim2.fromOffset(520, 300),
-    Transparent = true,
-    Theme = "Dark",
-    SideBarWidth = 190,
-    HasOutline = false,
-    User = {
-        Enabled = true,
-        Anonymous = false,
-        Callback = function()
-            local lp = game:GetService("Players").LocalPlayer
-            local char = lp.Character
-            local data = lp.Data
-            
-            -- Lấy các thông số cơ bản
-            local level = data.Level.Value
-            local beli = data.Beli.Value
-            local fruit = data.DevilFruit.Value
-            local race = data.Race.Value
-            local bounty = lp.leaderstats["Bounty/Honor"].Value
-
-            -- Mặc định nếu chưa có nhân vật
-            local hp, maxHp = 0, 0
-            local en, maxEn = 0, 0
-
-            -- Kiểm tra nhân vật để lấy Máu và Năng lượng
-            if char and char:FindFirstChild("Humanoid") and char:FindFirstChild("Energy") then
-                hp = math.floor(char.Humanoid.Health)
-                maxHp = math.floor(char.Humanoid.MaxHealth)
-                en = math.floor(char.Energy.Value)
-                maxEn = math.floor(char.Energy.MaxValue)
-            end
-
-            WindUI:Popup({
-                Title = "Bảng Trạng Thái",
-                Icon = "user",
-                Content = string.format(
-                    "⭐ Level: %s\n❤️ Health: %s / %s\n⚡ Energy: %s / %s\n💰 Beli: %s\n🍎 Fruit: %s\n🧬 Race: %s\n☠️ Bounty: %s",
-                    level, hp, maxHp, en, maxEn, beli, fruit, race, bounty
-                ),
-                Buttons = {
-                    {
-                        Title = "Đóng",
-                        Icon = "x",
-                        Callback = function() end,
-                        Variant = "Secondary",
-                    },
-                    {
-                        Title = "Làm mới",
-                        Icon = "refresh-cw",
-                        Callback = function() 
-                            Window:GetUser().Callback() 
-                        end,
-                        Variant = "Primary",
-                    }
-                }
-            })
-        end,
-    }
+local redzlib = loadstring(game:HttpGet("https://pastefy.app/W6Xz5utn/raw"))()
+local Window = redzlib:MakeWindow({
+    Title = "LongHiHi Hub (Lộc Tết) V4 [Beta]",
+    SubTitle = "by LongHiHi",
+    SaveFolder = true,
+    Image = "82107905019656"
+})
+local MinimizeButton = Window:AddMinimizeButton({
+    Button = { 
+        Image = "rbxassetid://89947810111304", -- Dùng ID ảnh bạn chọn
+        BackgroundTransparency = 1,
+        Name = "LongHiHi_On_Top_V5.2.0.0.0.0.1" -- Đặt tên đúng yêu cầu
+    },
+    Size = UDim2.new(0, 45, 0, 45), -- Size 45
+    Corner = { CornerRadius = UDim.new(0.5, 0) }, -- Bo tròn
+})
+local v4 = Window:MakeTab({
+    Title = "Settings Farm",
+    Icon = "settings"
 })
 
-Window:EditOpenButton({
-    Title = "Minh BELL BF",
-    Icon = "monitor",
-    CornerRadius = UDim.new(1,0),
-    StrokeThickness = 3,
-    Enabled = true, -- enable or disable openbutton
-    Draggable = true,
-    OnlyMobile = false,
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
 
-    Color = ColorSequence.new( -- gradient
-        Color3.fromHex("#30FF6A"), 
-        Color3.fromHex("#e7ff2f")
-    ),
-}) 
+local Enemies = workspace:FindFirstChild("Enemies") or Instance.new("Folder", workspace)
+local Characters = workspace:FindFirstChild("Characters") or Instance.new("Folder", workspace)
+Enemies.Name = "Enemies"
+Characters.Name = "Characters"
 
-local Tabs = {
-    MainTab = Window:Tab({
-        Title = "Main",
-        Icon = "house",
-        Desc = "Main Section"
-    }),
-}
+local Modules = ReplicatedStorage:FindFirstChild("Modules")
+local Net = Modules and Modules:FindFirstChild("Net")
+local ShootGunEvent = Net and Net:FindFirstChild("RE/ShootGunEvent")
 
+local mt = getrawmetatable(game)
+local old_namecall = mt.__namecall
+setreadonly(mt, false)
+
+mt.__namecall = newcclosure(function(...)
+    local method = getnamecallmethod()
+    local args = {...}
+    
+    if getgenv().GunAuraSettings and getgenv().GunAuraSettings.Enabled and getgenv().GunAuraSettings.CurrentTarget then
+        if method == "FireServer" or method == "InvokeServer" then
+            if tostring(args[1]) == "RemoteEvent" or tostring(args[1]):find("Shoot") or tostring(args[1]):find("Attack") then
+                if type(args[2]) == "Vector3" then
+                    args[2] = getgenv().GunAuraSettings.CurrentTarget.Position
+                elseif type(args[3]) == "Vector3" then
+                    args[3] = getgenv().GunAuraSettings.CurrentTarget.Position
+                end
+            end
+        end
+    end
+    
+    return old_namecall(unpack(args))
+end)
+
+setreadonly(mt, true)
+
+_G.UltraAttack = false
 _G.UltraClick = false
 
--- Services & Bổ sung các biến bị thiếu
+-- Services
 local Players = game:GetService("Players")
 local VIM = game:GetService("VirtualInputManager")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local VirtualUser = game:GetService("VirtualUser")
-
 local lp = Players.LocalPlayer
-local Player = lp -- Fix biến Player trong Gun Aura
-local Camera = workspace.CurrentCamera -- Fix biến Camera
-local Enemies = workspace:WaitForChild("Enemies") -- Fix biến Enemies
-local Characters = workspace:WaitForChild("Characters") -- Fix biến Characters
 
 -- Require modules
 local Net = require(ReplicatedStorage.Modules.Net)
@@ -107,7 +76,6 @@ local CombatUtil = require(ReplicatedStorage.Modules.CombatUtil)
 -- Remotes
 local hitRemote = Net:RemoteEvent("RegisterHit")
 local attackRemote = ReplicatedStorage.Modules.Net:FindFirstChild("RE/RegisterAttack")
-local ShootGunEvent = ReplicatedStorage.Modules.Net:FindFirstChild("RE/ShootGun") -- Remote bắn súng (nếu có)
 
 -- ==========================================
 -- CODE CLICK MỚI CỦA BẠN
@@ -244,6 +212,26 @@ task.spawn(function()
     end
 end)
 
+-- ==========================================
+-- ULTRA ATTACK GỐC
+-- ==========================================
+
+
+
+
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local VirtualUser = game:GetService("VirtualUser")
+local Lighting = game:GetService("Lighting")
+local CollectionService = game:GetService("CollectionService")
+
 getgenv().GunAuraSettings = {
     Enabled = true,
     GunRange = 500,
@@ -343,6 +331,8 @@ getgenv().AutoClickShootSettings = {
     LastClickTime = 0
 }
 
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
 local function isHoldingGun()
     local character = Player.Character
     if not character then return false end
@@ -362,61 +352,68 @@ local function performClick()
     
     local clickPosition = Vector2.new(Camera.ViewportSize.X / 2, 20)
     
-    VIM:SendMouseButtonEvent(clickPosition.X, clickPosition.Y, 0, true, game, 0)
+    VirtualInputManager:SendMouseButtonEvent(clickPosition.X, clickPosition.Y, 0, true, game, 0)
     task.wait(0.02)
-    VIM:SendMouseButtonEvent(clickPosition.X, clickPosition.Y, 0, false, game, 0)
+    VirtualInputManager:SendMouseButtonEvent(clickPosition.X, clickPosition.Y, 0, false, game, 0)
     
     getgenv().AutoClickShootSettings.LastClickTime = currentTime
 end
+v4:AddToggle({
+    Name = "Enable Auto Click",
+    Default = false,
+    Callback = function(state)
+        _G.Settings.AutoClick = state
+    end
+})
 
--- ==========================================
--- GIAO DIỆN WINDUI CHUẨN
--- ==========================================
-
-Tabs.MainTab:Dropdown({
-    Title = "Select target type",
-    Values = TargetTypes,
-    Value = "All",
+v4:AddDropdown({
+    Name = "Select target type",
+    Options = TargetTypes,
+    Default = "All",
     Callback = function(type)
         getgenv().GunAuraSettings.TargetType = type
     end
 })
 
-Tabs.MainTab:Slider({
-    Title = "Gun range",
-	Step = 10,
-	Value = {
-		Min = 50,
-		Max = 20000,
-		Default = 500,
-    },
+v4:AddSlider({
+    Name = "Gun range",
+    Min = 50,
+    Max = 20000,
+    Default = 500,
+    Increment = 10,
     Callback = function(val)
         getgenv().GunAuraSettings.GunRange = val
     end
 })
 
-Tabs.MainTab:Toggle({
-    Title = "Shoot Gun Aura ( Dùng Dragon Strorm👑)",
-    Value = false,
+v4:AddToggle({
+    Name = "Shoot Gun Aura ( Dùng Dragon Strorm👑)",
+    Default = false,
     Callback = function(val)
+		
         getgenv().GunAuraSettings.GunEnabled = val
     end
 })
 
-Tabs.MainTab:Toggle({
-    Title = "Auto click when holding gun (2s)",
-    Value = false,
+v4:AddToggle({
+    Name = "Auto click when holding gun (2s)",
+    Default = false,
     Callback = function(val)
         _G.UltraClick = val
     end
 })
 
-local targetDisplay = Tabs.MainTab:Paragraph({
+task.spawn(function()
+    while true do
+        pcall(performClick)
+        task.wait(0.1)
+    end
+end)
+local targetDisplay = v4:AddParagraph({
     Title = "Current Target",
-    Desc = "Searching..."
+    Content = "Searching..."
 })
 
--- Vòng lặp cập nhật UI Target
 task.spawn(function()
     while task.wait(0.5) do
         if getgenv().GunAuraSettings.GunEnabled and getgenv().GunAuraSettings.CurrentTarget then
@@ -440,25 +437,13 @@ task.spawn(function()
                     distText = string.format(" [%d studs]", dist)
                 end
                 
-                -- Cập nhật Paragraph theo chuẩn WindUI
-                targetDisplay:Set({
-                    Title = "Current Target",
-                    Desc = string.format(" [%s] %s%s%s", targetType, target.Name, healthText, distText)
-                })
+                targetDisplay:SetDesc(string.format(" [%s] %s%s%s", targetType, target.Name, healthText, distText))
             else
-                targetDisplay:Set({ Title = "Current Target", Desc = "Searching..." })
+                targetDisplay:SetDesc("Searching...")
             end
         else
-            targetDisplay:Set({ Title = "Current Target", Desc = "Searching..." })
+            targetDisplay:SetDesc("Searching...")
         end
-    end
-end)
-
--- Các vòng lặp khác
-task.spawn(function()
-    while true do
-        pcall(performClick)
-        task.wait(0.1)
     end
 end)
 
