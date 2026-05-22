@@ -229,7 +229,7 @@ end
 -- UI Construction
 Tabs.MainTab:Dropdown({
     Title = "Select target type",
-    Options = {"Player", "NPC", "All"},
+    Values = {"Player", "NPC", "All"},
     Value = "All",
     Callback = function(t) getgenv().GunAuraSettings.TargetType = t end
 })
