@@ -396,7 +396,7 @@ v4:AddToggle({
 })
 
 v4:AddToggle({
-    Name = "Auto click when holding gun (2s)",
+	Name = "Auto click when holding gun (2s)",
     Default = false,
     Callback = function(val)
         _G.UltraClick = val
@@ -457,5 +457,35 @@ end)
 task.spawn(function()
     while task.wait(5) do
         pcall(setSimulationRadius)
+    end
+end)
+-- New Setting
+getgenv().GunAuraSettings.NoCooldown = false
+
+-- Add to your UI Tabs.MainTab
+v4:AddToggle({
+    Name = "No Gun Cooldown (Bypass Time)",
+    Default = false,
+    Callback = function(val)
+        getgenv().GunAuraSettings.NoCooldown = val
+        if val then
+            bypassGunCooldowns()
+        end
+    end
+})
+
+-- Modified Loop to check the toggle
+task.spawn(function()
+    while true do
+        if getgenv().GunAuraSettings.GunEnabled then
+            pcall(applyGunDamage)
+        end
+        
+        -- If NoCooldown is on, we wait much less
+        if getgenv().GunAuraSettings.NoCooldown then
+            task.wait(0.001) 
+        else
+            task.wait(getgenv().GunAuraSettings.FireRate)
+        end
     end
 end)
