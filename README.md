@@ -12,3 +12,7 @@ Blox Fruit beta script
 ```lua
 loadstring(game:HttpGet("https://raw.githubusercontent.com/Minh5160912/minh-beo/refs/heads/main/minh%20bell%20hub%20beta"))()
 ```
+long hihi v4 mod
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Minh5160912/minh-beo/refs/heads/main/longhihiv4mod"))()
+```
