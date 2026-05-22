@@ -310,13 +310,19 @@ task.spawn(function()
 end)
 task.spawn(function()
     while true do
-        pcall(applyGunDamage)
+        -- Kiểm tra nếu hàm applyGunDamage tồn tại thì mới gọi pcall
+        if type(applyGunDamage) == "function" then
+            pcall(applyGunDamage)
+        end
         task.wait(getgenv().GunAuraSettings.FireRate) -- FireRate vẫn là 0.01
     end
 end)
 
 task.spawn(function()
     while task.wait(5) do
-        pcall(setSimulationRadius)
+        -- Kiểm tra nếu hàm setSimulationRadius tồn tại thì mới gọi pcall
+        if type(setSimulationRadius) == "function" then
+            pcall(setSimulationRadius)
+        end
     end
 end)
