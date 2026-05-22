@@ -11186,52 +11186,79 @@ local function round(num)
 end
 
 -- PLAYER ESP: Tên player \n % M
+local Players = game:GetService("Players")
+local localPlayer = Players.LocalPlayer
+
 local function UpdatePlayerESP()
-    for _, player in pairs(game.Players:GetChildren()) do
-        pcall(function()
-            if not isnil(player.Character) and player ~= game.Players.LocalPlayer then
-                if PlayerESPEnabled then
-                    if not isnil(player.Character.Head) and not player.Character.Head:FindFirstChild("NameESP" .. NumberESP) then
-                        local billboard = Instance.new("BillboardGui", player.Character.Head)
-                        billboard.Name = "NameESP" .. NumberESP
-                        billboard.ExtentsOffset = Vector3.new(0, 1, 0)
-                        billboard.Size = UDim2.new(1, 200, 1, 45)
-                        billboard.Adornee = player.Character.Head
-                        billboard.AlwaysOnTop = true
-                        
-                        local textLabel = Instance.new("TextLabel", billboard)
-                        textLabel.Font = Enum.Font.Code
-                        textLabel.TextSize = 14
-                        textLabel.TextWrapped = true
-                        textLabel.Size = UDim2.new(1, 0, 1, 0)
-                        textLabel.TextYAlignment = Enum.TextYAlignment.Top
-                        textLabel.BackgroundTransparency = 1
-                        textLabel.TextStrokeTransparency = 0.5
-                        
-                        local hpPercent = round((player.Character.Humanoid.Health * 100) / player.Character.Humanoid.MaxHealth)
-                        local distance = round((game.Players.LocalPlayer.Character.Head.Position - player.Character.Head.Position).Magnitude / 3)
-                        
-                        textLabel.Text = player.Name .. "\n" .. hpPercent .. "% " .. distance .. "M"
-                        
-                        if player.Team == game.Players.LocalPlayer.Team then
-                            textLabel.TextColor3 = Color3.new(0, 0, 255)
-                        else
-                            textLabel.TextColor3 = Color3.new(255, 0, 0)
-                        end
-                    else
-                        if player.Character.Head:FindFirstChild("NameESP" .. NumberESP) then
-                            local label = player.Character.Head["NameESP" .. NumberESP].TextLabel
-                            local hpPercent = round((player.Character.Humanoid.Health * 100) / player.Character.Humanoid.MaxHealth)
-                            local distance = round((game.Players.LocalPlayer.Character.Head.Position - player.Character.Head.Position).Magnitude / 3)
-                            
-                            label.Text = player.Name .. "\n" .. hpPercent .. "% " .. distance .. "M"
-                        end
-                    end
+    -- Ensure globals exist; if PlayerESPEnabled is nil, assume false
+    if not _G.PlayerESPEnabled and not PlayerESPEnabled then return end
+    
+    local localChar = localPlayer.Character
+    local localHead = localChar and localChar:FindFirstChild("Head")
+    if not localHead then return end
+
+    -- Cache the name to reduce string concatenation and register usage
+    local espName = "NameESP" .. (tostring(NumberESP or ""))
+
+    -- ipairs on GetPlayers() is the most efficient iteration method
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player == localPlayer then continue end
+        
+        local character = player.Character
+        if not character then continue end
+        
+        -- Guard against missing parts during character loading
+        local head = character:FindFirstChild("Head")
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        
+        if head and humanoid then
+            local billboard = head:FindFirstChild(espName)
+            local label
+
+            if not billboard then
+                -- Construct object without parenting first (Performance)
+                billboard = Instance.new("BillboardGui")
+                billboard.Name = espName
+                billboard.ExtentsOffset = Vector3.new(0, 1, 0)
+                billboard.Size = UDim2.new(1, 200, 1, 45)
+                billboard.Adornee = head
+                billboard.AlwaysOnTop = true
+                
+                label = Instance.new("TextLabel")
+                label.Font = Enum.Font.Code
+                label.TextSize = 14
+                label.TextWrapped = true
+                label.Size = UDim2.new(1, 0, 1, 0)
+                label.TextYAlignment = Enum.TextYAlignment.Top
+                label.BackgroundTransparency = 1
+                label.TextStrokeTransparency = 0.5
+                label.Parent = billboard
+                
+                -- Parent once fully configured
+                billboard.Parent = head
+            else
+                label = billboard:FindFirstChildOfClass("TextLabel")
+            end
+
+            if label then
+                -- Use string.format and inline math to save local registers
+                label.Text = string.format("%s\n%d%% %dM", 
+                    player.Name, 
+                    math.round((humanoid.Health / humanoid.MaxHealth) * 100),
+                    math.round((localHead.Position - head.Position).Magnitude / 3)
+                )
+                
+                -- Correct Color3.new usage (0 to 1)
+                if player.Team == localPlayer.Team then
+                    label.TextColor3 = Color3.new(0, 0, 1) -- Blue
+                else
+                    label.TextColor3 = Color3.new(1, 0, 0) -- Red
                 end
             end
-        end)
+        end
     end
 end
+
 
 -- ISLAND ESP: Tên island \n M
 local function UpdateIslandESP()
@@ -13082,4 +13109,3 @@ v12:AddToggle({
         end)
     end
 })
-
