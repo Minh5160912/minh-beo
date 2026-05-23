@@ -1,0 +1,150 @@
+-- [[ LOAD WIND UI LIBRARY ]] --
+local WindUI = loadstring(game:HttpGet("https://tree-hub.vercel.app/api/UI/WindUI"))()
+
+-- [[ SERVICES ]] --
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+
+-- [[ VARIABLES ]] --
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+local eventsFolder = ReplicatedStorage:FindFirstChild("Events")
+local combatRemote = eventsFolder and eventsFolder:FindFirstChild("RegisterHit")
+
+-- [[ CONFIG STATE ]] --
+local Config = {
+    AuraEnabled = false,
+    StackAmount = 10,
+    Damage = 9999
+}
+
+-- [[ UI SETUP ]] --
+local Window = WindUI:CreateWindow({
+    Title = "Minh BELL Hub",
+    Icon = "rbxassetid://10734950309", -- Icon mặc định
+    Author = "Minh BELL",
+    Folder = "MinhBellConfigs"
+})
+
+local MainTab = Window:CreateTab("Combat", "swords")
+MainTab:CreateToggle({
+    Title = "Gun Aura Damage",
+    Desc = "Tự động stack sát thương khi click vào mục tiêu",
+    Value = getgenv().GunAuraSettings.NoCooldown,
+    Callback = function(val)
+            getgenv().GunAuraSettings.NoCooldown = val
+            if val then
+                bypassGunCooldowns()
+            end
+        end
+  })
+-- Toggle Bật/Tắt Aura
+MainTab:CreateToggle({
+    Title = "Gun Aura Damage",
+    Desc = "Tự động stack sát thương khi click vào mục tiêu",
+    Value = Config.AuraEnabled,
+    Callback = function(state)
+        Config.AuraEnabled = state
+        WindUI:Notify({
+            Title = "Aura Status",
+            Content = state and "Đã Bật Aura" or "Đã Tắt Aura",
+            Duration = 2
+        })
+    end
+})
+
+-- Slider chỉnh Stack Amount
+MainTab:CreateSlider({
+    Title = "Stack Amount",
+    Desc = "Số lượng damage gửi đi mỗi lần click",
+    Min = 1,
+    Max = 50,
+    Value = Config.StackAmount,
+    Callback = function(value)
+        Config.StackAmount = value
+    end
+})
+
+-- [[ CORE LOGIC ]] --
+local function getCharacterFromPart(part)
+    if not part then return nil end
+    local character = part:FindFirstAncestorOfClass("Model")
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+    return (humanoid and character) and character or nil
+end
+
+local function fireStackedShot(targetPlayer, weaponTool)
+    if not (combatRemote and targetPlayer and weaponTool) then return end
+    
+    local args = {
+        [1] = targetPlayer,
+        [2] = weaponTool,
+        [3] = {
+            ["Damage"] = Config.Damage,
+            ["Critical"] = true
+        }
+    }
+
+    -- Vòng lặp bắn theo số lượng stack đã chỉnh ở UI
+    for i = 1, Config.StackAmount do
+        combatRemote:FireServer(unpack(args))
+    end
+end
+
+-- Input Listener
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed or not Config.AuraEnabled then return end
+    if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+
+    local character = player.Character
+    local tool = character and character:FindFirstChildOfClass("Tool")
+    if not tool then return end
+
+    local targetModel = getCharacterFromPart(mouse.Target)
+    if not targetModel or targetModel == character then return end
+
+    local targetPlayer = Players:GetPlayerFromCharacter(targetModel)
+    if targetPlayer then
+        fireStackedShot(targetPlayer, tool)
+    end
+end)
+local function bypassGunCooldowns()
+    if WeaponData then
+        for _, weapon in pairs(WeaponData) do
+            if type(weapon) == "table" then
+                -- Modern Blox Fruits naming conventions for cooldowns
+                if weapon.Cooldown then weapon.Cooldown = 0 end
+                if weapon.ReloadTime then weapon.ReloadTime = 0 end
+                if weapon.FireRate then weapon.FireRate = 0 end
+                if weapon.Delay then weapon.Delay = 0 end
+            end
+        end
+    end
+end
+local function applyGunDamage()
+    if not getgenv().GunAuraSettings.GunEnabled then return end
+    
+    local target, targetPart = findClosestTargetForGun()
+    if not target or not targetPart then return end
+
+    getgenv().GunAuraSettings.CurrentTarget = targetPart
+
+    if ShootGunEvent then
+        pcall(function()
+            -- Increase to 5-10 for "Instant" kill effect, but don't overdo it
+            for i = 1, 5 do 
+                ShootGunEvent:FireServer(targetPart.Position, {targetPart})
+            end
+        end)
+    end
+end
+getgenv().GunAuraSettings.NoCooldown = false
+-- Run it once at start
+bypassGunCooldowns()
+-- Thông báo khi load xong
+WindUI:Notify({
+    Title = "Minh BELL Hub",
+    Content = "Script đã sẵn sàng!",
+    Duration = 3
+})
