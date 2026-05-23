@@ -1,5 +1,5 @@
 -- [[ LOAD WIND UI LIBRARY ]] --
-local WindUI = loadstring(game:HttpGet("https://tree-hub.vercel.app/api/UI/WindUI"))()
+
 
 -- [[ SERVICES ]] --
 local Players = game:GetService("Players")
@@ -19,16 +19,96 @@ local Config = {
     Damage = 9999
 }
 
--- [[ UI SETUP ]] --
+local WindUI = (loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua")))();
 local Window = WindUI:CreateWindow({
     Title = "Minh BELL Hub",
-    Icon = "rbxassetid://10734950309", -- Icon mặc định
-    Author = "Minh BELL",
-    Folder = "MinhBellConfigs"
-})
+    Author = "Blox Fruits",
+    Folder = "By LEE MIN",
+    Size = UDim2.fromOffset(520, 300),
+    Transparent = true,
+    Theme = "Dark",
+    SideBarWidth = 190,
+    HasOutline = false,
+	User = {
+        Enabled = true,
+        Anonymous = false,
+        Callback = function()
+            local lp = game:GetService("Players").LocalPlayer
+            local char = lp.Character
+            local data = lp.Data
+            
+            -- Lấy các thông số cơ bản
+            local level = data.Level.Value
+            local beli = data.Beli.Value
+            local fruit = data.DevilFruit.Value
+            local race = data.Race.Value
+            local bounty = lp.leaderstats["Bounty/Honor"].Value
 
-local MainTab = Window:CreateTab("Combat", "swords")
-MainTab:CreateToggle({
+            -- Mặc định nếu chưa có nhân vật
+            local hp, maxHp = 0, 0
+            local en, maxEn = 0, 0
+
+            -- Kiểm tra nhân vật để lấy Máu và Năng lượng
+            if char and char:FindFirstChild("Humanoid") and char:FindFirstChild("Energy") then
+                hp = math.floor(char.Humanoid.Health)
+                maxHp = math.floor(char.Humanoid.MaxHealth)
+                en = math.floor(char.Energy.Value)
+                maxEn = math.floor(char.Energy.MaxValue)
+            end
+
+            WindUI:Popup({
+                Title = "Bảng Trạng Thái",
+                Icon = "user",
+                Content = string.format(
+                    "⭐ Level: %s\n❤️ Health: %s / %s\n⚡ Energy: %s / %s\n💰 Beli: %s\n🍎 Fruit: %s\n🧬 Race: %s\n☠️ Bounty: %s",
+                    level, hp, maxHp, en, maxEn, beli, fruit, race, bounty
+                ),
+                Buttons = {
+                    {
+                        Title = "Đóng",
+                        Icon = "x",
+                        Callback = function() end,
+                        Variant = "Secondary",
+                    },
+                    {
+                        Title = "Làm mới",
+                        Icon = "refresh-cw",
+                        Callback = function() 
+                            Window:GetUser().Callback() 
+                        end,
+                        Variant = "Primary",
+                    }
+                }
+            })
+        end,
+    }
+});
+Window:EditOpenButton({
+    Title = "Minh BELL BF",
+    Icon = "monitor",
+    CornerRadius = UDim.new(1,0),
+    StrokeThickness = 3,
+    Color = ColorSequence.new(Color3.fromRGB(30, 30, 30), Color3.fromRGB(255, 255, 255)),
+    Enabled = true, -- enable or disable openbutton
+    Draggable = true,
+    OnlyMobile = false,
+
+    Color = ColorSequence.new( -- gradient
+        Color3.fromHex("#30FF6A"), 
+        Color3.fromHex("#e7ff2f")
+    ),
+	
+}); 
+
+
+local Tabs = {
+	MainTab = Window:Tab({
+		Title = "Main",
+		Icon = "house",
+		Desc = "Main Section"
+	}),
+}
+Tabs.MainTab:Toggle({
     Title = "Gun Aura Damage",
     Desc = "Tự động stack sát thương khi click vào mục tiêu",
     Value = getgenv().GunAuraSettings.NoCooldown,
@@ -40,7 +120,7 @@ MainTab:CreateToggle({
         end
   })
 -- Toggle Bật/Tắt Aura
-MainTab:CreateToggle({
+Tabs.MainTab:CreateToggle({
     Title = "Gun Aura Damage",
     Desc = "Tự động stack sát thương khi click vào mục tiêu",
     Value = Config.AuraEnabled,
@@ -55,7 +135,7 @@ MainTab:CreateToggle({
 })
 
 -- Slider chỉnh Stack Amount
-MainTab:CreateSlider({
+Tabs.MainTab:Slider({
     Title = "Stack Amount",
     Desc = "Số lượng damage gửi đi mỗi lần click",
     Min = 1,
