@@ -208,7 +208,7 @@ SettingsTabSlider = Tabs.SettingsTab:Slider({
     Title = "Gun range",
     Value = {
 		Min = 10,
-		Max = 350,
+		Max = 20000000,
 		Default = 500
 	},
     Callback = function(value)
