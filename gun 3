@@ -215,16 +215,16 @@ SettingsTabSlider = Tabs.SettingsTab:Slider({
         getgenv().PMT_GunAuraSettings_GunRange = value
     end
 });
+AutoSailBoatToggle = Tabs.SettingsTab:Toggle({
 
-Tab.SettingsTab:Toggle({
     Title = "Shoot Gun Aura ( Dùng Dragon Strorm👑)",
     Default = false,
-    Callback = function(val)
-        getgenv().PMT_GunAuraSettings_GunEnabled = val
+    Callback = function(state)
+        getgenv().PMT_GunAuraSettings_GunEnabled = state
     end
 });
+AutoToggle = Tabs.SettingsTab:Toggle({
 
-Tab.SettingsTab:Toggle({
     Title = "Auto click when holding gun (2s)",
     Default = false,
     Callback = function(val)
