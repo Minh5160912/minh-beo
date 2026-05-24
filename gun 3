@@ -52,13 +52,13 @@ mt.__namecall = newcclosure(function(...)
     local method = getnamecallmethod()
     local args = {...}
     
-    if getgenv().PMT_GunAuraSettings and getgenv().PMT_GunAuraSettings.Enabled and getgenv().PMT_GunAuraSettings.CurrentTarget then
+    if getgenv().PMT_GunAuraSettings and getgenv().PMT_GunAuraSettings_Enabled and getgenv().PMT_GunAuraSettings_CurrentTarget then
         if method == "FireServer" or method == "InvokeServer" then
             if tostring(args[1]) == "RemoteEvent" or tostring(args[1]):find("Shoot") or tostring(args[1]):find("Attack") then
                 if option(args[2]) == "Vector3" then
-                    args[2] = getgenv().PMT_GunAuraSettings.CurrentTarget.Position
+                    args[2] = getgenv().PMT_GunAuraSettings_CurrentTarget.Position
                 elseif option(args[3]) == "Vector3" then
-                    args[3] = getgenv().PMT_GunAuraSettings.CurrentTarget.Position
+                    args[3] = getgenv().PMT_GunAuraSettings_CurrentTarget.Position
                 end
             end
         end
@@ -69,11 +69,11 @@ end)
 
 setreadonly(mt, true)
 
-getgenv().PMT_GunAuraSettings.GunRange = 500
-getgenv().PMT_GunAuraSettings.CurrentTarget = nil
-getgenv().PMT_GunAuraSettings.TargetType = "All"
-getgenv().PMT_GunAuraSettings.GunEnabled = false
-getgenv().PMT_GunAuraSettings.FireRate = 0.01
+getgenv().PMT_GunAuraSettings_GunRange = 500
+getgenv().PMT_GunAuraSettings_CurrentTarget = nil
+getgenv().PMT_GunAuraSettings_TargetType = "All"
+getgenv().PMT_GunAuraSettings_GunEnabled = false
+getgenv().PMT_GunAuraSettings_FireRate = 0.01
 
 local TargetTypes = {"Player", "NPC", "All"}
 
@@ -94,11 +94,11 @@ local function findClosestTargetForGun()
     if not myPos then return nil end
 
     setSimulationRadius()
-    local closestDist = getgenv().PMT_GunAuraSettings.GunRange + 1
+    local closestDist = getgenv().PMT_GunAuraSettings_GunRange + 1
     local closestTarget = nil
     local closestPart = nil
     
-    local targetType = getgenv().PMT_GunAuraSettings.TargetType
+    local targetType = getgenv().PMT_GunAuraSettings_TargetType
 
     if targetType == "NPC" or targetType == "All" then
         for _, enemy in ipairs(Enemies:GetChildren()) do
@@ -136,19 +136,19 @@ local function findClosestTargetForGun()
 end
 
 local function applyGunDamage()
-    if not getgenv().PMT_GunAuraSettings.GunEnabled then return end
+    if not getgenv().PMT_GunAuraSettings_GunEnabled then return end
     if not Player.Character or not IsAlive(Player.Character) then 
-        getgenv().PMT_GunAuraSettings.CurrentTarget = nil
+        getgenv().PMT_GunAuraSettings_CurrentTarget = nil
         return 
     end
 
     local target, targetPart = findClosestTargetForGun()
     if not target or not targetPart then 
-        getgenv().PMT_GunAuraSettings.CurrentTarget = nil
+        getgenv().PMT_GunAuraSettings_CurrentTarget = nil
         return 
     end
 
-    getgenv().PMT_GunAuraSettings.CurrentTarget = targetPart
+    getgenv().PMT_GunAuraSettings_CurrentTarget = targetPart
 
     if ShootGunEvent then
         pcall(function()
@@ -200,7 +200,7 @@ Tabs.SettingsTab:Dropdown({
     Values = TargetTypes,
     Value = "All",
     Callback = function(option)
-        getgenv().PMT_GunAuraSettings.TargetType = option
+        getgenv().PMT_GunAuraSettings_TargetType = option
     end
 })
 
@@ -211,7 +211,7 @@ Tab.SettingsTab:Slider({
     Default = 500,
     Increment = 10,
     Callback = function(val)
-        getgenv().PMT_GunAuraSettings.GunRange = val
+        getgenv().PMT_GunAuraSettings_GunRange = val
     end
 })
 
@@ -219,7 +219,7 @@ Tab.SettingsTab:Toggle({
     Title = "Shoot Gun Aura ( Dùng Dragon Strorm👑)",
     Default = false,
     Callback = function(val)
-        getgenv().PMT_GunAuraSettings.GunEnabled = val
+        getgenv().PMT_GunAuraSettings_GunEnabled = val
     end
 })
 
@@ -248,8 +248,8 @@ local targetDisplay = Tabs.SettingsTab:Paragraph({
 
 task.spawn(function()
     while task.wait(0.5) do
-        if getgenv().PMT_GunAuraSettings.GunEnabled and getgenv().PMT_GunAuraSettings.CurrentTarget then
-            local target = getgenv().PMT_GunAuraSettings.CurrentTarget.Parent
+        if getgenv().PMT_GunAuraSettings_GunEnabled and getgenv().PMT_GunAuraSettings_CurrentTarget then
+            local target = getgenv().PMT_GunAuraSettings_CurrentTarget.Parent
             if target then
                 local targetType = "NPC"
                 if Characters:FindFirstChild(target.Name) then
@@ -262,7 +262,7 @@ task.spawn(function()
                 local healthText = hum and string.format(" - %.1f/%.1f HP (%.0f%%)", hum.Health, hum.MaxHealth, (hum.Health / hum.MaxHealth) * 100) or ""
                 
                 local myPos = Player.Character and Player.Character:GetPivot().Position
-                local targetPos = getgenv().PMT_GunAuraSettings.CurrentTarget.Position
+                local targetPos = getgenv().PMT_GunAuraSettings_CurrentTarget.Position
                 local distText = ""
                 if myPos and targetPos then
                     local dist = math.floor((targetPos - myPos).Magnitude)
@@ -282,7 +282,7 @@ end)
 task.spawn(function()
     while true do
         pcall(applyGunDamage)
-        task.wait(getgenv().PMT_GunAuraSettings.FireRate) -- FireRate vẫn là 0.01
+        task.wait(getgenv().PMT_GunAuraSettings_FireRate) -- FireRate vẫn là 0.01
     end
 end)
 
