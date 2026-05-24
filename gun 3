@@ -69,7 +69,7 @@ end)
 
 setreadonly(mt, true)
 
-getgenv().PMT_GunAuraSettings.GunRange = getgenv().PMT_GunFarm_Range or 500
+getgenv().PMT_GunAuraSettings.GunRange = 500
 getgenv().PMT_GunAuraSettings.CurrentTarget = nil
 getgenv().PMT_GunAuraSettings.TargetType = "All"
 getgenv().PMT_GunAuraSettings.GunEnabled = false
