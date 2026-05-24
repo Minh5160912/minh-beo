@@ -3091,9 +3091,6 @@ local Character = Player.Character or Player.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
-
-
-
 local env = (getgenv or getrenv or getfenv)();
 local rs = game:GetService("ReplicatedStorage");
 local players = game:GetService("Players");
@@ -3106,6 +3103,23 @@ local playerFolder = game:GetService("Players");
 local AttackModule = {};
 local RegisterAttack = net:WaitForChild("RE/RegisterAttack");
 local RegisterHit = net:WaitForChild("RE/RegisterHit");
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+local Enemies = workspace:FindFirstChild("Enemies") or Instance.new("Folder", workspace)
+local Characters = workspace:FindFirstChild("Characters") or Instance.new("Folder", workspace)
+Enemies.Name = "Enemies"
+Characters.Name = "Characters"
+
+local Modules = ReplicatedStorage:FindFirstChild("Modules")
+local Net = Modules and Modules:FindFirstChild("Net")
+local ShootGunEvent = Net and Net:FindFirstChild("RE/ShootGunEvent")
+
+local mt = getrawmetatable(game)
+local old_namecall = mt.__namecall
 
 -- [HÀM ĐÁNH CHÍNH]
 function AttackModule:AttackEnemy(EnemyHead, Table)
@@ -3169,45 +3183,32 @@ end;
 
 -- [VÒNG LẶP KÍCH HOẠT]
 task.spawn(function()
-    while task.wait() do
+    while task.wait(0.2) do -- Chỉnh 0.2 cho nhẹ máy
         if _G.FastAttack or (_G.Settings and _G.Settings.Main and _G.Settings.Main["Auto Farm"]) then
             pcall(function()
-                local tool = client.Character:FindFirstChildOfClass("Tool")
-                -- Chỉ đánh nếu cầm đúng loại vũ khí
-                if tool and (tool.ToolTip == "Melee" or tool.ToolTip == "Sword" or tool.ToolTip == "Blox Fruit") then
-					NormalAttack()
-					
-				elseif tool and (tool.ToolTip == "Gun") then
-					pcall(function(state)
-						getgenv().PMT_GunAuraSettings_GunEnabled = state
-						getgenv().AutoClickShootSettings.Enabled = val
-						if not state then
-						getgenv().AutoClickShootSettings.LastClickTime = 0
-						end
-					end)
-				end;
+                local char = client.Character
+                if not char then return end
+                local tool = char:FindFirstChildOfClass("Tool")
+                
+                if tool then
+                    if tool.ToolTip == "Melee" or tool.ToolTip == "Sword" or tool.ToolTip == "Blox Fruit" then
+                        -- Tắt súng khi cầm cận chiến
+                        getgenv().PMT_GunAuraSettings_GunEnabled = false
+                        getgenv().AutoClickShootSettings.Enabled = false
+                        
+                        NormalAttack()
+                    
+                    elseif tool.ToolTip == "Gun" then
+                        -- Bật súng khi cầm súng
+                        getgenv().PMT_GunAuraSettings_GunEnabled = true
+                        getgenv().AutoClickShootSettings.Enabled = true
+                    end
+                end
             end)
         end
     end
 end)
 
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-local Player = Players.LocalPlayer
-local Camera = workspace.CurrentCamera
-
-local Enemies = workspace:FindFirstChild("Enemies") or Instance.new("Folder", workspace)
-local Characters = workspace:FindFirstChild("Characters") or Instance.new("Folder", workspace)
-Enemies.Name = "Enemies"
-Characters.Name = "Characters"
-
-local Modules = ReplicatedStorage:FindFirstChild("Modules")
-local Net = Modules and Modules:FindFirstChild("Net")
-local ShootGunEvent = Net and Net:FindFirstChild("RE/ShootGunEvent")
-
-local mt = getrawmetatable(game)
-local old_namecall = mt.__namecall
 setreadonly(mt, false)
 
 mt.__namecall = newcclosure(function(...)
@@ -3444,12 +3445,9 @@ task.spawn(function()
         pcall(setSimulationRadius)
     end
 end)
--------------------attack() module
--- Khởi tạo biến môi trường rz_FastAttack từ M1 no unban (Giữ nguyên gốc)
 
 local function Attack()
-    
-	if not attckfuntion then return end
+    -- Xóa dòng kiểm tra tooltip bị chặn ở đây
     
     local character = game.Players.LocalPlayer.Character
     if not character or not character:FindFirstChild("Humanoid") or character.Humanoid.Health <= 0 then return end
@@ -3457,30 +3455,25 @@ local function Attack()
     local tool = character:FindFirstChildOfClass("Tool")
     if not tool then return end
 
-    local tooltip = tool.ToolTip
-    -- [GỐC] Chỉ đánh nếu là Melee, Kiếm hoặc Trái ác quỷ
-    if tooltip ~= "Melee" and tooltip ~= "Sword" and tooltip ~= "Blox Fruit" then return end
+    -- Chỉ chạy logic M1 nếu không phải là Súng
+    if tool.ToolTip == "Gun" then return end 
 
     pcall(function()
-        -- [M1 no unban] Sử dụng Net từ Modules
         local Net = game:GetService("ReplicatedStorage").Modules.Net
         local RegAttack = Net:WaitForChild("RE/RegisterAttack")
         local RegHit = Net:WaitForChild("RE/RegisterHit")
         local pos = character:GetPivot().Position
 
-        -- [GỐC] Lệnh đánh chém (M1)
         RegAttack:FireServer(0) 
 
-        -- Xử lý gây sát thương diện rộng (Hitbox)
         local Enemies = game:GetService("Workspace").Enemies:GetChildren()
         local allHits = {}
         local mainTarget = nil
 
         for _, v in pairs(Enemies) do
-            -- [M1 no unban] Kiểm tra Head/HRP và IsAlive
             if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
                 local dist = (v.HumanoidRootPart.Position - pos).Magnitude
-                if dist < 110 then -- Tầm đánh cân bằng giữa 100 và 120
+                if dist < 110 then 
                     if not mainTarget then
                         mainTarget = v.HumanoidRootPart
                     else
@@ -3490,18 +3483,17 @@ local function Attack()
             end
         end
 
-        -- [M1 no unban] Nếu là Trái ác quỷ có LeftClickRemote thì bắn Direction
         if mainTarget and tool:FindFirstChild("LeftClickRemote") then
             local dir = (mainTarget.Position - pos).Unit
             tool.LeftClickRemote:FireServer(dir, 1)
         end
 
-        -- [GỐC] Gửi gói tin RegisterHit
         if mainTarget then
             RegHit:FireServer(mainTarget, allHits)
         end
     end)
 end
+
 
 -- VÒNG LẶP KÍCH HOẠT (Thừa hưởng từ logic task.spawn của M1 no unban)
 task.spawn(function()
@@ -3548,8 +3540,6 @@ task.spawn(function()
         end
     end
 end)
-
-
 spawn(function()
 	(game:GetService("RunService")).RenderStepped:Connect(function()
 		pcall(function()
