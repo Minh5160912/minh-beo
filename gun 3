@@ -206,10 +206,13 @@ Tabs.SettingsTab:Dropdown({
 
 Tab.SettingsTab:Slider({
     Title = "Gun range",
-    Min = 50,
-    Max = 20000,
-    Default = 500,
-    Increment = 10,
+    Value = {
+		Min = 10,
+		Max = 350,
+		Default = 500,
+	},
+	Step = 10,
+
     Callback = function(val)
         getgenv().PMT_GunAuraSettings_GunRange = val
     end
