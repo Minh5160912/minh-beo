@@ -1,0 +1,293 @@
+
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Modules = ReplicatedStorage:WaitForChild("Modules")
+local Net = Modules:WaitForChild("Net")
+
+local RegisterAttack = Net:WaitForChild("RE/RegisterAttack")
+local RegisterHit = Net:WaitForChild("RE/RegisterHit")
+
+local function IsAlive(character)
+    return character and character:FindFirstChild("Humanoid") and character.Humanoid.Health > 0
+end
+local WindUI = (loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua")))();
+local Window = WindUI:CreateWindow({
+    Title = "Minh BELL Hub",
+    Author = "Blox Fruits",
+    Folder = "By LEE MIN",
+    Size = UDim2.fromOffset(520, 300),
+    Transparent = true,
+    Theme = "Dark",
+    SideBarWidth = 190,
+    HasOutline = false,
+})
+local Tabs = {
+	SettingsTab = Window:Tab({
+		Title = "Settings",
+		Icon = "settings",
+		Desc = "Settings Section"
+	}),
+}
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+local Enemies = workspace:FindFirstChild("Enemies") or Instance.new("Folder", workspace)
+local Characters = workspace:FindFirstChild("Characters") or Instance.new("Folder", workspace)
+Enemies.Name = "Enemies"
+Characters.Name = "Characters"
+
+local Modules = ReplicatedStorage:FindFirstChild("Modules")
+local Net = Modules and Modules:FindFirstChild("Net")
+local ShootGunEvent = Net and Net:FindFirstChild("RE/ShootGunEvent")
+
+local mt = getrawmetatable(game)
+local old_namecall = mt.__namecall
+setreadonly(mt, false)
+
+mt.__namecall = newcclosure(function(...)
+    local method = getnamecallmethod()
+    local args = {...}
+    
+    if getgenv().PMT_GunAuraSettings and getgenv().PMT_GunAuraSettings.Enabled and getgenv().PMT_GunAuraSettings.CurrentTarget then
+        if method == "FireServer" or method == "InvokeServer" then
+            if tostring(args[1]) == "RemoteEvent" or tostring(args[1]):find("Shoot") or tostring(args[1]):find("Attack") then
+                if option(args[2]) == "Vector3" then
+                    args[2] = getgenv().PMT_GunAuraSettings.CurrentTarget.Position
+                elseif option(args[3]) == "Vector3" then
+                    args[3] = getgenv().PMT_GunAuraSettings.CurrentTarget.Position
+                end
+            end
+        end
+    end
+    
+    return old_namecall(unpack(args))
+end)
+
+setreadonly(mt, true)
+
+getgenv().PMT_GunAuraSettings.GunRange = getgenv().PMT_GunFarm_Range or 500
+getgenv().PMT_GunAuraSettings.CurrentTarget = nil
+getgenv().PMT_GunAuraSettings.TargetType = "All"
+getgenv().PMT_GunAuraSettings.GunEnabled = false
+getgenv().PMT_GunAuraSettings.FireRate = 0.01
+
+local TargetTypes = {"Player", "NPC", "All"}
+
+local function IsAlive(character)
+    if not character then return false end
+    local hum = character:FindFirstChild("Humanoid")
+    return hum and hum.Health > 0
+end
+
+local function setSimulationRadius()
+    pcall(function()
+        sethiddenproperty(Player, "SimulationRadius", 10000)
+    end)
+end
+
+local function findClosestTargetForGun()
+    local myPos = Player.Character and Player.Character:GetPivot().Position
+    if not myPos then return nil end
+
+    setSimulationRadius()
+    local closestDist = getgenv().PMT_GunAuraSettings.GunRange + 1
+    local closestTarget = nil
+    local closestPart = nil
+    
+    local targetType = getgenv().PMT_GunAuraSettings.TargetType
+
+    if targetType == "NPC" or targetType == "All" then
+        for _, enemy in ipairs(Enemies:GetChildren()) do
+            if IsAlive(enemy) and enemy ~= Player.Character then
+                local hrp = enemy:FindFirstChild("HumanoidRootPart") or enemy:FindFirstChild("Head")
+                if hrp then
+                    local dist = (hrp.Position - myPos).Magnitude
+                    if dist < closestDist then
+                        closestDist = dist
+                        closestTarget = enemy
+                        closestPart = hrp
+                    end
+                end
+            end
+        end
+    end
+
+    if targetType == "Player" or targetType == "All" then
+        for _, char in ipairs(Characters:GetChildren()) do
+            if IsAlive(char) and char ~= Player.Character then
+                local hrp = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Head")
+                if hrp then
+                    local dist = (hrp.Position - myPos).Magnitude
+                    if dist < closestDist then
+                        closestDist = dist
+                        closestTarget = char
+                        closestPart = hrp
+                    end
+                end
+            end
+        end
+    end
+
+    return closestTarget, closestPart
+end
+
+local function applyGunDamage()
+    if not getgenv().PMT_GunAuraSettings.GunEnabled then return end
+    if not Player.Character or not IsAlive(Player.Character) then 
+        getgenv().PMT_GunAuraSettings.CurrentTarget = nil
+        return 
+    end
+
+    local target, targetPart = findClosestTargetForGun()
+    if not target or not targetPart then 
+        getgenv().PMT_GunAuraSettings.CurrentTarget = nil
+        return 
+    end
+
+    getgenv().PMT_GunAuraSettings.CurrentTarget = targetPart
+
+    if ShootGunEvent then
+        pcall(function()
+            for i = 1, 3 do
+                ShootGunEvent:FireServer(targetPart.Position, {targetPart})
+            end
+        end)
+    end
+end
+
+getgenv().AutoClickShootSettings = {
+    Enabled = false,
+    ClickDelay = 0.0001,
+    LastClickTime = 0
+}
+
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
+local function isHoldingGun()
+    local character = Player.Character
+    if not character then return false end
+    
+    local tool = character:FindFirstChildOfClass("Tool")
+    return tool ~= nil
+end
+
+local function performClick()
+    if not getgenv().AutoClickShootSettings.Enabled then return end
+    if not isHoldingGun() then return end
+    
+    local currentTime = tick()
+    if currentTime - getgenv().AutoClickShootSettings.LastClickTime < getgenv().AutoClickShootSettings.ClickDelay then
+        return
+    end
+    
+    local clickPosition = Vector2.new(Camera.ViewportSize.X / 2, 20)
+    
+    VirtualInputManager:SendMouseButtonEvent(clickPosition.X, clickPosition.Y, 0, true, game, 0)
+    task.wait(0.02)
+    VirtualInputManager:SendMouseButtonEvent(clickPosition.X, clickPosition.Y, 0, false, game, 0)
+    
+    getgenv().AutoClickShootSettings.LastClickTime = currentTime
+end
+
+
+
+Tabs.SettingsTab:Dropdown({
+    Title = "Select target type",
+    Values = TargetTypes,
+    Value = "All",
+    Callback = function(option)
+        getgenv().PMT_GunAuraSettings.TargetType = option
+    end
+})
+
+Tab.SettingsTab:Slider({
+    Title = "Gun range",
+    Min = 50,
+    Max = 20000,
+    Default = 500,
+    Increment = 10,
+    Callback = function(val)
+        getgenv().PMT_GunAuraSettings.GunRange = val
+    end
+})
+
+Tab.SettingsTab:Toggle({
+    Title = "Shoot Gun Aura ( Dùng Dragon Strorm👑)",
+    Default = false,
+    Callback = function(val)
+        getgenv().PMT_GunAuraSettings.GunEnabled = val
+    end
+})
+
+Tab.SettingsTab:Toggle({
+    Title = "Auto click when holding gun (2s)",
+    Default = false,
+    Callback = function(val)
+        getgenv().AutoClickShootSettings.Enabled = val
+        if not val then
+            getgenv().AutoClickShootSettings.LastClickTime = 0
+        end
+    end
+})
+
+task.spawn(function()
+    while true do
+        pcall(performClick)
+        task.wait(0.1)
+    end
+end)
+
+local targetDisplay = Tabs.SettingsTab:Paragraph({
+    Title = "Current Target",
+    Desc = "Searching...",
+});
+
+task.spawn(function()
+    while task.wait(0.5) do
+        if getgenv().PMT_GunAuraSettings.GunEnabled and getgenv().PMT_GunAuraSettings.CurrentTarget then
+            local target = getgenv().PMT_GunAuraSettings.CurrentTarget.Parent
+            if target then
+                local targetType = "NPC"
+                if Characters:FindFirstChild(target.Name) then
+                    targetType = "Player"
+                elseif Enemies:FindFirstChild(target.Name) then
+                    targetType = "NPC"
+                end
+                
+                local hum = target:FindFirstChild("Humanoid")
+                local healthText = hum and string.format(" - %.1f/%.1f HP (%.0f%%)", hum.Health, hum.MaxHealth, (hum.Health / hum.MaxHealth) * 100) or ""
+                
+                local myPos = Player.Character and Player.Character:GetPivot().Position
+                local targetPos = getgenv().PMT_GunAuraSettings.CurrentTarget.Position
+                local distText = ""
+                if myPos and targetPos then
+                    local dist = math.floor((targetPos - myPos).Magnitude)
+                    distText = string.format(" [%d studs]", dist)
+                end
+                
+                targetDisplay:SetDesc(string.format(" [%s] %s%s%s", targetType, target.Name, healthText, distText))
+            else
+                targetDisplay:SetDesc("Searching...")
+            end
+        else
+            targetDisplay:SetDesc("Searching...")
+        end
+    end
+end)
+
+task.spawn(function()
+    while true do
+        pcall(applyGunDamage)
+        task.wait(getgenv().PMT_GunAuraSettings.FireRate) -- FireRate vẫn là 0.01
+    end
+end)
+
+task.spawn(function()
+    while task.wait(5) do
+        pcall(setSimulationRadius)
+    end
+end)
