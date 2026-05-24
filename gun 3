@@ -202,7 +202,7 @@ Tabs.SettingsTab:Dropdown({
     Callback = function(option)
         getgenv().PMT_GunAuraSettings_TargetType = option
     end
-})
+});
 SettingsTabSlider = Tabs.SettingsTab:Slider({
 
     Title = "Gun range",
@@ -214,7 +214,7 @@ SettingsTabSlider = Tabs.SettingsTab:Slider({
     Callback = function(value)
         getgenv().PMT_GunAuraSettings_GunRange = value
     end
-})
+});
 
 Tab.SettingsTab:Toggle({
     Title = "Shoot Gun Aura ( Dùng Dragon Strorm👑)",
@@ -222,7 +222,7 @@ Tab.SettingsTab:Toggle({
     Callback = function(val)
         getgenv().PMT_GunAuraSettings_GunEnabled = val
     end
-})
+});
 
 Tab.SettingsTab:Toggle({
     Title = "Auto click when holding gun (2s)",
@@ -233,7 +233,7 @@ Tab.SettingsTab:Toggle({
             getgenv().AutoClickShootSettings.LastClickTime = 0
         end
     end
-})
+});
 
 task.spawn(function()
     while true do
